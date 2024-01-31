@@ -1,6 +1,6 @@
 #!/bin/bash
 
 
-make CDBG=-w chat-server
+make -s cchat-server
 
-make CDBG=-w chat-client
+make -s cchat-client
