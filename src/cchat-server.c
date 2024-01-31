@@ -8,7 +8,7 @@
 #define PORT 9876
 #define MAX_PENDING_CONNECTIONS 10
 #define TIMEOUT_MS 50000
-
+#define BUFFER_SIZE 256
 
 int terminated = 0;
 
@@ -54,15 +54,15 @@ int main() {
 
     printf("Press Ctrl+C to terminate\n");
     while(!terminated) {
-        char buffer[256] = { 0 };
+        char buffer[BUFFER_SIZE] = { 0 };
 
         poll(fds, 2, TIMEOUT_MS);
 
         if (fds[0].revents & POLLIN) {
-            read(0, buffer, 255);
-            send(clientfd, buffer, 255, 0);
+            read(0, buffer, BUFFER_SIZE-1);
+            send(clientfd, buffer, BUFFER_SIZE-1, 0);
         } else if (fds[1].revents & POLLIN) {
-            if (recv(clientfd, buffer, 255, 0) == 0) {
+            if (recv(clientfd, buffer, BUFFER_SIZE-1, 0) == 0) {
                 return 0;
             }
 
