@@ -85,6 +85,7 @@ void serve(char* ip_address, int port) {
         handle_error("Bind Failed");
     }
 
+    INFO("Waiting for a client to connect\n");
     if(listen(sockfd, MAX_PENDING_CONNECTIONS) < 0) {
         handle_error("Listen failed");
     }
