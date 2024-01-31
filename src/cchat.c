@@ -152,6 +152,7 @@ int main(int argc, char** argv){
                 ip_address = optarg;
                 break;
             default:
+                printf("[INFO] Usage: %s [serve|connect] -a [option] -p [option]", argv[0]);
                 exit(1);
         }
     }
@@ -163,7 +164,7 @@ int main(int argc, char** argv){
     } else if(strcmp("connect", command) == 0){
         connect_to(ip_address, port);
     } else {
-        printf("[ERRO] Invalid command: '%s'\n", command);
+        fprintf(stderr, "[ERRO] Invalid command: '%s'\n", command);
     }
 
     return 0;
