@@ -1,5 +1,4 @@
 #include <signal.h>
-#include <stdlib.h>
 #include <sys/socket.h>
 #include <stdio.h>
 #include <arpa/inet.h>
@@ -9,9 +8,6 @@
 #define PORT 9876
 #define MAX_PENDING_CONNECTIONS 10
 #define TIMEOUT_MS 50000
-
-#define handle_error(msg) \
-    do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
 
 int terminated = 0;
@@ -31,15 +27,15 @@ int main() {
         0
     };
 
-    int bind_status = bind(sockfd, &address, sizeof(address));
-
-    if(bind_status == -1) {
-        fprintf(stderr, "Socket is busy. Try again in a moment\n");
-        handle_error("bind");
+    if(bind(sockfd, (struct sockaddr*)&address, sizeof(address)) < 0){
+        perror("Bind Failed");
         return 1;
     }
 
-    listen(sockfd, MAX_PENDING_CONNECTIONS);
+    if(listen(sockfd, MAX_PENDING_CONNECTIONS) < 0){
+        perror("Listen failed");
+        return 1;
+    }
 
     int clientfd = accept(sockfd, 0, 0);
 

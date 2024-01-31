@@ -16,11 +16,11 @@ int main() {
         0
     };
 
-    int connect_status = connect(sockfd, &address, sizeof(address));
+    int connect_status = connect(sockfd, (struct sockaddr*)&address, sizeof(address));
 
 
     if(connect_status == -1) {
-        fprintf(stderr, "Socket is busy. Try again in a moment\n");
+        perror("Connect failed");
         return 1;
     }
 
@@ -43,7 +43,6 @@ int main() {
         poll(fds, 2, TIMEOUT_MS);
 
         if (fds[0].revents & POLLIN) {
-            printf("> ");
             read(0, buffer, 255);
             send(sockfd, buffer, 255, 0);
         } else if (fds[1].revents & POLLIN) {
