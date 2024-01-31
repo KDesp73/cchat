@@ -3,7 +3,10 @@ CFLAGS = -Wall -Wextra
 SRC_DIR = src
 BUILD_DIR = build
 
-all: server client
+all: cchat server client
+
+cchat: $(SRC_DIR)/cchat.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(SRC_DIR)/cchat.c -o $(BUILD_DIR)/cchat
 
 server: $(SRC_DIR)/cchat-server.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(SRC_DIR)/cchat-server.c -o $(BUILD_DIR)/cchat-server
