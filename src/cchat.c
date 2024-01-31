@@ -11,6 +11,21 @@
 #define TIMEOUT_MS 50000
 #define BUFFER_SIZE 256
 
+#define handle_error(msg) \
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+#define LOG(type, format, ...) \
+    printf("[%s] " format, type, ##__VA_ARGS__); // '##' == if they exist
+
+#define INFO(format, ...) \
+    LOG("INFO", format, ##__VA_ARGS__);
+
+#define ERRO(format, ...) \
+    LOG("ERRO", format, ##__VA_ARGS__);
+
+#define WARN(format, ...) \
+    LOG("WARN", format, ##__VA_ARGS__);
+
 void connect_to(char* ip_address, int port){
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -23,8 +38,7 @@ void connect_to(char* ip_address, int port){
     int connect_status = connect(sockfd, (struct sockaddr*)&address, sizeof(address));
 
     if(connect_status == -1) {
-        perror("Connect failed");
-        exit(1);
+        handle_error("Connect failed");
     }
 
     struct pollfd fds[2] = {
@@ -68,13 +82,11 @@ void serve(char* ip_address, int port){
     };
 
     if(bind(sockfd, (struct sockaddr*)&address, sizeof(address)) < 0){
-        perror("Bind Failed");
-        exit(1);
+        handle_error("Bind Failed");
     }
 
     if(listen(sockfd, MAX_PENDING_CONNECTIONS) < 0){
-        perror("Listen failed");
-        exit(1);
+        handle_error("Listen failed");
     }
 
     int clientfd = accept(sockfd, 0, 0);
@@ -92,7 +104,7 @@ void serve(char* ip_address, int port){
         }
     };
 
-    printf("Press Ctrl+C to terminate\n");
+    INFO("Press Ctrl+C to terminate\n");
     while(1) {
         char buffer[BUFFER_SIZE] = { 0 };
 
@@ -152,7 +164,7 @@ int main(int argc, char** argv){
                 ip_address = optarg;
                 break;
             default:
-                printf("[INFO] Usage: %s [serve|connect] -a [option] -p [option]", argv[0]);
+                INFO("Usage: %s [serve|connect] -a [option] -p [option]\n", argv[0]);
                 exit(1);
         }
     }
@@ -164,7 +176,7 @@ int main(int argc, char** argv){
     } else if(strcmp("connect", command) == 0){
         connect_to(ip_address, port);
     } else {
-        fprintf(stderr, "[ERRO] Invalid command: '%s'\n", command);
+        ERRO("Invalid command: '%s'\n", command);
     }
 
     return 0;
