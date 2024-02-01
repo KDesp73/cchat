@@ -1,4 +1,5 @@
-cchat-client
-cchat-server
+cchat
 build
 scripts
+.cache
+compile_commands.json
