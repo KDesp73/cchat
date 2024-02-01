@@ -6,6 +6,7 @@ A simple chat service for the terminal written in C
 
 ```console
 git clone --depth=1 https://github.com/KDesp73/cchat
+cd cchat
 ./install.sh
 ```
 

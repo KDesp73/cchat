@@ -26,6 +26,8 @@ connect              Connect to a server
 
 -p --port            Specify the port
 
+-v --version         Prints the version of the executable
+
 .SH BUGS
 
 No known bugs.
