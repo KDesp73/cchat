@@ -31,7 +31,7 @@ fi
 
 echo "Installing man page..."
 
-sudo install -g 0 -o 0 -m 0644 $as /usr/share/man/man8/$as.8
+sudo install -g 0 -o 0 -m 0644 $as.man /usr/share/man/man8/$as.8
 sudo gzip /usr/share/man/man8/$as.8
 
 if [ $? -eq 0 ]; then
