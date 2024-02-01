@@ -8,7 +8,6 @@
 #include <unistd.h>
 
 #include "client.h"
-#include "screen.h"
 #include "data.h"
 #include "logging.h"
 #include "config.h"
