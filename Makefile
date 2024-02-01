@@ -1,21 +1,41 @@
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Iinclude
+
 SRC_DIR = src
+INCLUDE_DIR = include
 BUILD_DIR = build
 
-all: cchat server client
+# List all the source files
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 
-cchat: $(SRC_DIR)/cchat.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(SRC_DIR)/cchat.c -o $(BUILD_DIR)/cchat
+# Generate the corresponding object file names
+OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
-server: $(SRC_DIR)/cchat-server.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(SRC_DIR)/cchat-server.c -o $(BUILD_DIR)/cchat-server
+# Target: the final executable
+TARGET = cchat
 
-client: $(SRC_DIR)/cchat-client.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(SRC_DIR)/cchat-client.c -o $(BUILD_DIR)/cchat-client
+# Default target, build the executable
+all: $(BUILD_DIR) $(TARGET)
 
+# Rule to create the build directory
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
+# Rule to build the executable
+$(TARGET): $(OBJ_FILES)
+	$(CC) -o $@ $^
+
+# Rule to build object files from source files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Clean rule to remove generated files
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) $(TARGET)
+
+compile_commands.json: $(SRC_FILES)
+	bear -- make
+
+# Phony target to avoid conflicts with file names
+.PHONY: all clean
+
