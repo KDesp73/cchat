@@ -36,6 +36,13 @@ clean:
 compile_commands.json: $(SRC_FILES)
 	bear -- make
 
+# FOR TESTING
+serve: $(TARGET)
+	./cchat serve --address 127.0.0.1 --port 9876
+
+connect: $(TARGET)
+	./cchat connect --address 127.0.0.1 --port 9876
+
 # Phony target to avoid conflicts with file names
 .PHONY: all clean
 
