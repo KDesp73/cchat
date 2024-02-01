@@ -31,7 +31,12 @@ fi
 
 echo "Installing man page..."
 
-install -g 0 -o 0 -m 0644 cchat.1 /usr/share/man/man8/
-gzip /usr/share/man/man8/cchat.1
+sudo install -g 0 -o 0 -m 0644 $as /usr/share/man/man8/$as.8
+sudo gzip /usr/share/man/man8/$as.8
 
-echo "man page installed successfully"
+if [ $? -eq 0 ]; then
+    echo "man page installed successfully"
+else 
+    echo "Failed to install man page"
+fi
+
