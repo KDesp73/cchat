@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -11,8 +12,18 @@
 #define TIMEOUT_MS 50000
 #define BUFFER_SIZE 256
 
+#define clear() printf("\033[H\033[J")
+#define gotoxy(x,y) printf("\033[%d;%dH", (y), (x))
+#define moveup(x) printf("\033[%dA", x);
+#define movedown(x) printf("\033[%dB", x);
+#define moveright(x) printf("\033[%dC", x);
+#define moveleft(x) printf("\033[%dD", x);
+
+
+#define CONCAT(a, b) a""b
+
 #define handle_error(msg) \
-    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+    do { perror(CONCAT("[ERRO] ", msg)); exit(EXIT_FAILURE); } while (0)
 
 #define LOG(type, format, ...) \
     printf("[%s] " format, type, ##__VA_ARGS__); // '##' == if they exist
@@ -25,6 +36,16 @@
 
 #define WARN(format, ...) \
     LOG("WARN", format, ##__VA_ARGS__);
+
+
+int is_empty(const char *s) {
+    while (*s != '\0') {
+        if (!isspace((unsigned char)*s))
+            return 0;
+        s++;
+    }
+    return 1;
+}
 
 void connect_to(char* ip_address, int port){
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -61,6 +82,9 @@ void connect_to(char* ip_address, int port){
 
         if (fds[0].revents & POLLIN) {
             read(0, buffer, BUFFER_SIZE-1);
+
+            if(is_empty(buffer)) continue;
+
             send(sockfd, buffer, BUFFER_SIZE-1, 0);
         } else if (fds[1].revents & POLLIN) {
             if (recv(sockfd, buffer, BUFFER_SIZE-1, 0) == 0) {
@@ -120,6 +144,9 @@ void serve(char* ip_address, int port) {
 
             if (fds[0].revents & POLLIN) {
                 read(0, buffer, BUFFER_SIZE - 1);
+
+                if(is_empty(buffer)) continue;
+
                 send(clientfd, buffer, BUFFER_SIZE - 1, 0);
             } else if (fds[1].revents & POLLIN) {
                 int bytes_received = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
