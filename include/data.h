@@ -12,6 +12,6 @@ struct Data {
 
 void print_data(struct Data data);
 char* data_to_string(struct Data data);
-
+struct Data* string_to_data(char* str);
 
 #endif // DATA_H

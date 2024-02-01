@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include <getopt.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -7,6 +8,7 @@
 #include <unistd.h>
 
 #include "client.h"
+#include "data.h"
 #include "logging.h"
 #include "config.h"
 #include "utils.h"
@@ -49,13 +51,22 @@ void connect_to(char* ip_address, int port){
 
             if(is_empty(buffer)) continue;
 
-            send(sockfd, buffer, BUFFER_SIZE-1, 0);
+            struct Data data = {
+                .id = sockfd,
+                .user = "user",
+                .message = buffer,
+                .time = get_current_time()
+            };
+
+            send(sockfd, data_to_string(data), BUFFER_SIZE-1, 0);
         } else if (fds[1].revents & POLLIN) {
             if (recv(sockfd, buffer, BUFFER_SIZE-1, 0) == 0) {
                 exit(0);
             }
 
-            printf("%s\n", buffer);
+            struct Data* data = string_to_data(buffer);
+
+            printf("%s: %s\n", data->user, data->message);
         }
     }
 }

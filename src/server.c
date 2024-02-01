@@ -1,4 +1,5 @@
 #include "server.h"
+#include "data.h"
 #include <stdio.h>
 #include <getopt.h>
 #include <sys/socket.h>
@@ -61,7 +62,14 @@ void serve(char* ip_address, int port) {
 
                 if(is_empty(buffer)) continue;
 
-                send(clientfd, buffer, BUFFER_SIZE - 1, 0);
+                struct Data data = {
+                    .id = sockfd,
+                    .user = "server",
+                    .message = buffer,
+                    .time = get_current_time()
+                };
+
+                send(clientfd, data_to_string(data), BUFFER_SIZE - 1, 0);
             } else if (fds[1].revents & POLLIN) {
                 int bytes_received = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
 
@@ -71,7 +79,9 @@ void serve(char* ip_address, int port) {
                     break;
                 }
 
-                printf("%s\n", buffer);
+                struct Data* data = string_to_data(buffer);
+
+                printf("%s: %s\n", data->user, data->message);
             }
         }
     }

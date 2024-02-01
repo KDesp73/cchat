@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "data.h"
+#include "config.h"
 #include "logging.h"
 
 
@@ -34,3 +37,57 @@ char* data_to_string(struct Data data) {
 
     return datastr;
 }
+
+
+struct Data *string_to_data(char *str) {
+    struct Data *data = (struct Data *)malloc(sizeof(struct Data));
+
+    if (!data) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return NULL;
+    }
+
+    // Tokenize the input string
+    char *token = strtok(str, ",");
+    if (!token) {
+        fprintf(stderr, "Invalid input string.\n");
+        free(data);
+        return NULL;
+    }
+
+    // Parse and set the id
+    data->id = atoi(token);
+
+    // Parse and set the user
+    token = strtok(NULL, ",");
+    if (!token) {
+        fprintf(stderr, "Invalid input string.\n");
+        free(data);
+        return NULL;
+    }
+    data->user = strdup(token);
+
+    // Parse and set the message
+    token = strtok(NULL, ",");
+    if (!token) {
+        fprintf(stderr, "Invalid input string.\n");
+        free(data->user);
+        free(data);
+        return NULL;
+    }
+    data->message = strdup(token);
+
+    // Parse and set the time
+    token = strtok(NULL, ",");
+    if (!token) {
+        fprintf(stderr, "Invalid input string.\n");
+        free(data->user);
+        free(data->message);
+        free(data);
+        return NULL;
+    }
+    data->time = atoi(token);
+
+    return data;
+}
+
