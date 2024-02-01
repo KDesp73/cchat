@@ -5,15 +5,22 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <poll.h>
+#include <time.h>
 #include <unistd.h>
 
-#include "logging.h"
+#include "data.h"
 #include "utils.h"
 #include "server.h"
+#include "logging.h"
 #include "client.h"
 
 
 int main(int argc, char** argv){
+    // struct Data data = {1, "KDesp73", "hello", get_current_time()};
+    // printf("Data: %s\n", data_to_string(data));
+    //
+    // printf("Time: %s\n", expand_time(data.time));
+
     int port = -345678;
     char* ip_address = NULL;
 
@@ -36,6 +43,12 @@ int main(int argc, char** argv){
                 INFO("Usage: %s [serve|connect] -a [option] -p [option]\n", argv[0]);
                 exit(1);
         }
+    }
+
+    if(port == -345678 && ip_address == NULL) {
+        ERRO("No ip address specified\n");
+        ERRO("No port specified\n");
+        exit(1);
     }
 
     if(port ==  -345678){

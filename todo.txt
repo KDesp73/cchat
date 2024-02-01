@@ -4,5 +4,5 @@ TODO: save history
 TODO: usernames
 TODO: timestamps
 TODO: communication protocol
-TODO: split into multiple files (headers)
 TODO: saved connections
+DONE: split into multiple files (headers)

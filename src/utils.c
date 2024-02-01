@@ -1,4 +1,6 @@
 #include "utils.h"
+#include <string.h>
+#include <time.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -35,4 +37,15 @@ int isValidIpAddress(char *ipAddress){
     struct sockaddr_in sa;
     int result = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
     return result != 0;
+}
+
+time_t get_current_time(){
+    return time(0);
+}
+
+char* expand_time(time_t time){
+    char* str = ctime(&time);
+    str[strlen(str)-1] = '\0';
+
+    return str;
 }

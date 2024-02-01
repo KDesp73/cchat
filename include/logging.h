@@ -1,9 +1,8 @@
-
 #ifndef LOGGING_H
 #define LOGGING_H
 #include <stdlib.h>
 
-#define CONCAT(a, b) a""b
+#define CONCAT(a, b) a "" b
 
 #define handle_error(msg) \
     do { perror(CONCAT("[ERRO] ", msg)); exit(1); } while (0)
@@ -19,5 +18,9 @@
 
 #define WARN(format, ...) \
     LOG("WARN", format, ##__VA_ARGS__);
+
+#define DEBU(format, ...) \
+    LOG("DEBU", format, ##__VA_ARGS__);
+
 
 #endif // LOGGING_H
