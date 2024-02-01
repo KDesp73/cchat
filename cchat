@@ -1,0 +1,29 @@
+.\" Manpage for cchat.
+.\" Contact despoinidisk@gmail.com to correct errors or typos.
+.TH man 8 "01 Feb 2024" "1.0" "cchat man page"
+
+.SH NAME
+
+cchat \- chat via the terminal 
+
+.SH SYNOPSIS
+
+cchat [COMMAND] [-a|--address] [-p|--port]
+
+.SH DESCRIPTION
+
+cchat is a simple chat application for the terminal
+
+.SH OPTIONS
+
+-a --address         Specify the ip address to serve or connect to
+
+-p --port            Specify the port
+
+.SH BUGS
+
+No known bugs.
+
+.SH AUTHOR
+
+Konstantinos Despoinidis (despoinidisk@gmail.com)
