@@ -2,12 +2,14 @@
 #include "data.h"
 #include <stdio.h>
 #include <getopt.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <poll.h>
 #include <unistd.h>
 
 #include "config.h"
+#include "screen.h"
 #include "logging.h"
 #include "utils.h"
 
@@ -81,7 +83,13 @@ void serve(char* ip_address, int port) {
 
                 struct Data* data = string_to_data(buffer);
 
-                printf("%s: %s\n", data->user, data->message);
+                if(data){
+                    printf("%s%s:%s %s\n", red, data->user, reset, data->message);
+                    
+                    free(data->user);
+                    free(data->message);
+                    free(data);
+                }
             }
         }
     }

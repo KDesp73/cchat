@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "client.h"
+#include "screen.h"
 #include "data.h"
 #include "logging.h"
 #include "config.h"
@@ -66,7 +67,13 @@ void connect_to(char* ip_address, int port){
 
             struct Data* data = string_to_data(buffer);
 
-            printf("%s: %s\n", data->user, data->message);
+            if(data){
+                printf("%s%s:%s %s\n", red, data->user, reset, data->message);
+
+                free(data->user);
+                free(data->message);
+                free(data);
+            }
         }
     }
 }
