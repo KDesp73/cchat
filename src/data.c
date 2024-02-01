@@ -4,7 +4,7 @@
 #include "data.h"
 #include "config.h"
 #include "logging.h"
-
+#include "screen.h"
 
 void print_data(struct Data data){
     printf("Data {\n");
@@ -15,7 +15,11 @@ void print_data(struct Data data){
     printf("}\n");
 }
 
-
+void print_message(struct Data* data){
+    char time_str[32];
+    strftime(time_str, 32, "%d.%m.%Y %H:%M:%S", localtime(&data->time));  
+    printf("%s%s:%s %s %s(%s)%s\n", red, data->user, reset, data->message, black, time_str, reset);
+}
 
 char* data_to_string(struct Data data) {
     // Determine required size

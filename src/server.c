@@ -14,7 +14,7 @@
 #include "logging.h"
 #include "utils.h"
 
-void serve(char* ip_address, int port) {
+void serve(const char* ip_address, int port) {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in address = {
@@ -87,10 +87,7 @@ void serve(char* ip_address, int port) {
                 struct Data* data = string_to_data(buffer);
 
                 if(data){
-                    char time_str[32];
-                    strftime(time_str, 32, "%d.%m.%Y %H:%M:%S", localtime(&data->time));  
-                    printf("%s%s:%s %s %s(%s)%s\n", red, data->user, reset, data->message, black, time_str, reset);
-
+                    print_message(data);
 
                     free(data->user);
                     free(data->message);

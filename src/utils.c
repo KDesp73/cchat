@@ -56,11 +56,35 @@ char* read_file_line(const char* path){
     FILE* fptr = fopen(path, "r");
     char* buffer = (char*) calloc(100, sizeof(char));
 
-    fgets(buffer, 100, fptr);
+    if(fptr){
+        fgets(buffer, 100, fptr);
+        fclose(fptr);
+    } else return NULL;
 
-    fclose(fptr);
+    if(is_empty(buffer)) return NULL;
 
     buffer[strcspn(buffer, "\n")] = 0; // remove newline
 
     return buffer;
+}
+
+char *random_string(size_t length) {
+
+    static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";        
+    char *randomString = NULL;
+
+    if (length) {
+        randomString = malloc(sizeof(char) * (length +1));
+
+        if (randomString) {            
+            for (int n = 0;n < length;n++) {            
+                int key = rand() % (int)(sizeof(charset) -1);
+                randomString[n] = charset[key];
+            }
+
+            randomString[length] = '\0';
+        }
+    }
+
+    return randomString;
 }

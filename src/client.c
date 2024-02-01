@@ -14,7 +14,7 @@
 #include "config.h"
 #include "utils.h"
 
-void connect_to(char* ip_address, int port){
+void connect_to(const char* ip_address, int port, char* username){
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in address = {
@@ -56,7 +56,7 @@ void connect_to(char* ip_address, int port){
 
             struct Data data = {
                 .id = sockfd,
-                .user = read_file_line(username_path), 
+                .user = username,
                 .message = buffer,
                 .time = get_current_time()
             };
@@ -70,9 +70,7 @@ void connect_to(char* ip_address, int port){
             struct Data* data = string_to_data(buffer);
 
             if(data){
-                char time_str[32];
-                strftime(time_str, 32, "%d.%m.%Y %H:%M:%S", localtime(&data->time));  
-                    printf("%s%s:%s %s %s(%s)%s\n", red, data->user, reset, data->message, black, time_str, reset);
+                print_message(data);
 
                 free(data->user);
                 free(data->message);
