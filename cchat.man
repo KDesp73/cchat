@@ -14,6 +14,12 @@ cchat [COMMAND] [-a|--address] [-p|--port]
 
 cchat is a simple chat application for the terminal
 
+.SH COMMANDS
+
+serve                Start the server
+
+connect              Connect to a server
+
 .SH OPTIONS
 
 -a --address         Specify the ip address to serve or connect to
