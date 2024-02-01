@@ -1,0 +1,8 @@
+TODO: handle multiple clients
+TODO: better ui (TUI)
+TODO: save history
+TODO: usernames
+TODO: timestamps
+TODO: communication protocol
+TODO: split into multiple files (headers)
+TODO: saved connections
