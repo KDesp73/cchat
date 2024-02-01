@@ -11,6 +11,9 @@ git clone --depth=1 https://github.com/KDesp73/cchat
 
 ## Usage
 
+> If you want to use this remotely you will have to forward the IP adddress of
+your computer
+
 ### Start a server
 
 ```console
