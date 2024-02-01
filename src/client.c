@@ -1,7 +1,7 @@
 #include <stdio.h>
-
 #include <getopt.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <poll.h>
@@ -52,9 +52,11 @@ void connect_to(char* ip_address, int port){
 
             if(is_empty(buffer)) continue;
 
+            buffer[strcspn(buffer, "\n")] = 0; // remove newline
+
             struct Data data = {
                 .id = sockfd,
-                .user = "user",
+                .user = read_file_line(username_path), 
                 .message = buffer,
                 .time = get_current_time()
             };
@@ -68,7 +70,9 @@ void connect_to(char* ip_address, int port){
             struct Data* data = string_to_data(buffer);
 
             if(data){
-                printf("%s%s:%s %s\n", red, data->user, reset, data->message);
+                char time_str[32];
+                strftime(time_str, 32, "%d.%m.%Y %H:%M:%S", localtime(&data->time));  
+                    printf("%s%s:%s %s %s(%s)%s\n", red, data->user, reset, data->message, black, time_str, reset);
 
                 free(data->user);
                 free(data->message);

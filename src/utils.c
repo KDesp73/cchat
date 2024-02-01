@@ -1,4 +1,6 @@
 #include "utils.h"
+#include "config.h"
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <arpa/inet.h>
@@ -48,4 +50,17 @@ char* expand_time(time_t time){
     str[strlen(str)-1] = '\0';
 
     return str;
+}
+
+char* read_file_line(const char* path){
+    FILE* fptr = fopen(path, "r");
+    char* buffer = (char*) calloc(100, sizeof(char));
+
+    fgets(buffer, 100, fptr);
+
+    fclose(fptr);
+
+    buffer[strcspn(buffer, "\n")] = 0; // remove newline
+
+    return buffer;
 }

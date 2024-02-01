@@ -8,5 +8,6 @@ void print_args(int argc, char** argv);
 int isValidIpAddress(char *ipAddress);
 time_t get_current_time();
 char* expand_time(time_t time);
+char* read_file_line(const char* path);
 
 #endif // UTILS_H

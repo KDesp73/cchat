@@ -16,11 +16,6 @@
 
 
 int main(int argc, char** argv){
-    // struct Data data = {1, "KDesp73", "hello", get_current_time()};
-    // printf("Data: %s\n", data_to_string(data));
-    //
-    // printf("Time: %s\n", expand_time(data.time));
-
     int port = -345678;
     char* ip_address = NULL;
 
