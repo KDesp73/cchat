@@ -1,5 +1,6 @@
 TODO: saved connections
 TODO: different color for every user
+TODO: unique usernames
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: better ui (TUI)
