@@ -1,4 +1,3 @@
-TODO: handle multiple clients
 TODO: saved connections
 TODO: different color for every user
 DONE: split into multiple files (headers)
@@ -6,3 +5,4 @@ DONE: communication protocol
 DONE: better ui (TUI)
 DONE: usernames
 DONE: timestamps
+DONE: handle multiple clients
