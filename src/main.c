@@ -14,24 +14,24 @@
 #include "logging.h"
 #include "client.h"
 
-void check_username(char* username){
-    if (username == NULL) {
-        username = (char *)calloc(strlen("user#") + 6, sizeof(char));
+void check_username(char** username) {
+    if (*username == NULL) {
+        *username = (char *)calloc(strlen("user#") + 6, sizeof(char));
         WARN("Username not found\n");
-        strcpy(username, "user#");
-        strcat(username, random_string(6));
-        INFO("Your username now is: %s\n", username);
+        strcpy(*username, "user#");
+        strcat(*username, random_string(6));
+        INFO("Your username now is: %s\n", *username);
     }
 
-    if (username != NULL && strcmp(username, "server") == 0) {
+    if (*username != NULL && strcmp(*username, "server") == 0) {
         WARN("Your username cannot be 'server'\n");
-        username = (char *)calloc(strlen("user#") + 6, sizeof(char));
-        strcpy(username, "user#");
-        strcat(username, random_string(6));
-        INFO("Your username now is: %s\n", username);
+        free(*username);
+        *username = (char *)calloc(strlen("user#") + 6, sizeof(char));
+        strcpy(*username, "user#");
+        strcat(*username, random_string(6));
+        INFO("Your username now is: %s\n", *username);
     }
 }
-
 void check_address_and_port(char *ip_address, int port) {
     if (port == -345678 && ip_address == NULL) {
         ERRO("No ip address specified\n");
@@ -104,12 +104,9 @@ int main(int argc, char **argv) {
     if (strcmp("serve", command) == 0) {
         serve(ip_address, port, arg_username);
     } else if (strcmp("connect", command) == 0) {
-        if(arg_username != NULL){
-            connect_to(ip_address, port, arg_username);
-        } else {
-            check_username(file_username);
-            connect_to(ip_address, port, file_username);
-        }
+        check_username(&file_username);
+        DEBU("username: %s\n", file_username);
+        connect_to(ip_address, port, ((arg_username != NULL) ? arg_username : file_username));
     } else {
         ERRO("Invalid command: '%s'\n", command);
     }
