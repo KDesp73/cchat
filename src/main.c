@@ -105,7 +105,6 @@ int main(int argc, char **argv) {
         serve(ip_address, port, arg_username);
     } else if (strcmp("connect", command) == 0) {
         check_username(&file_username);
-        DEBU("username: %s\n", file_username);
         connect_to(ip_address, port, ((arg_username != NULL) ? arg_username : file_username));
     } else {
         ERRO("Invalid command: '%s'\n", command);
