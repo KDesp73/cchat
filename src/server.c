@@ -57,73 +57,32 @@ void *handle_client(void *arg) {
         pthread_exit(NULL);
     }
 
-    struct pollfd fds[2] = {
-        {
-            .fd = STDIN_FILENO,
-            .events = POLLIN,
-            .revents = 0
-        },
-        {
-            .fd = clientfd,
-            .events = POLLIN,
-            .revents = 0
-        }
-    };
-
     while (1) {
-        int poll_result = poll(fds, 2, TIMEOUT_MS);
+        char buffer[BUFFER_SIZE] = {0};
+        ssize_t bytes_received = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
 
-        if (poll_result < 0) {
-            ERRO("Error in poll\n");
+        if (bytes_received <= 0) {
+            INFO("Client disconnected\n");
             break;
         }
 
-        if (poll_result > 0) {
-            if (fds[0].revents & POLLIN) {
-                char buffer[BUFFER_SIZE] = {0};
-                ssize_t bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE - 1);
+        buffer[bytes_received] = '\0'; // Ensure null-termination
 
-                if (bytes_read <= 0) {
-                    // Handle stdin closure or error
-                    break;
-                }
+        struct Data *data = string_to_data(buffer);
 
-                buffer[bytes_read] = '\0'; // Ensure null-termination
+        if (data) {
+            print_message(data);
 
-                if(is_empty(buffer)) continue;
-                buffer[strcspn(buffer, "\n")] = 0; // remove newline
-
-                struct Data data = {
-                    .id = -1,
-                    .user = "server",
-                    .message = buffer,
-                    .time = get_current_time()
-                };
-
-                for (int i = 0; i < num_clients; ++i) {
-                    send(clients[i], data_to_string(data), BUFFER_SIZE - 1, 0);
+            // Broadcast the message to all clients
+            for (int i = 0; i < num_clients; ++i) {
+                if (clients[i] != clientfd) {
+                    send(clients[i], data_to_string(*data), bytes_received, 0);
                 }
             }
 
-            if (fds[1].revents & POLLIN) {
-                char buffer[BUFFER_SIZE] = {0};
-                ssize_t bytes_received = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
-
-                if (bytes_received <= 0) {
-                    INFO("Client disconnected\n");
-                    break;
-                }
-
-                struct Data *data = string_to_data(buffer);
-
-                if (data) {
-                    print_message(data);
-
-                    free(data->user);
-                    free(data->message);
-                    free(data);
-                }
-            }
+            free(data->user);
+            free(data->message);
+            free(data);
         }
     }
 
