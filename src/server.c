@@ -19,6 +19,7 @@
 
 int clients[MAX_PENDING_CONNECTIONS];
 int num_clients = 0;
+char* _username = NULL;
 
 void *handle_stdin(void *arg) {
     while (1) {
@@ -30,7 +31,7 @@ void *handle_stdin(void *arg) {
 
             struct Data data = {
                 .id = -1,  // Use a special ID for messages from the server
-                .user = "server",
+                .user = ((_username == NULL) ? "server" : _username),
                 .message = buffer,
                 .time = get_current_time()
             };
@@ -101,7 +102,12 @@ void *handle_client(void *arg) {
     pthread_exit(NULL);
 }
 
-void serve(const char *ip_address, int port) {
+void serve(const char *ip_address, int port, char* username) {
+    if(username != NULL && !is_empty(username)){
+        _username = (char*) calloc(strlen(username), sizeof(char));
+        strcpy(_username, username);
+    }
+
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in address = {
