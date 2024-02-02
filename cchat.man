@@ -30,6 +30,12 @@ connect              Connect to a server
 
 -u --username        Specify your username
 
+.SH EXAMPLES
+
+Serve: cchat serve -a 127.0.0.1 -p 1234
+
+Connect: cchat connect -a 127.0.0.1 -p 1234 -u user123
+
 .SH BUGS
 
 No known bugs.

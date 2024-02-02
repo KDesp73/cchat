@@ -4,6 +4,7 @@ TODO: unique usernames
 TODO: password
 TODO: better ui (TUI)
 TODO: autocomplete commands
+TODO: encryption
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: usernames
