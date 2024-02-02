@@ -1,4 +1,4 @@
-#include "data.h"
+#include <pthread.h>
 #include <stdio.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -9,12 +9,105 @@
 #include <unistd.h>
 
 #include "server.h"
-#include "config.h"
-#include "screen.h"
+#include "data.h"
 #include "logging.h"
 #include "utils.h"
 
-void serve(const char* ip_address, int port) {
+#define MAX_PENDING_CONNECTIONS 10
+#define TIMEOUT_MS 50000
+#define BUFFER_SIZE 256
+
+int clients[MAX_PENDING_CONNECTIONS];
+int num_clients = 0;
+char* _username = NULL;
+
+void *handle_stdin(void *arg) {
+    while (1) {
+        char buffer[BUFFER_SIZE] = {0};
+        read(STDIN_FILENO, buffer, BUFFER_SIZE - 1);
+
+        if (!is_empty(buffer)) {
+            buffer[strcspn(buffer, "\n")] = 0; // remove newline
+
+            struct Data data = {
+                .id = -1,  // Use a special ID for messages from the server
+                .user = ((_username == NULL) ? "server" : _username),
+                .message = buffer,
+                .time = get_current_time()
+            };
+
+            for (int i = 0; i < num_clients; ++i) {
+                send(clients[i], data_to_string(data), BUFFER_SIZE - 1, 0);
+            }
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
+void *handle_client(void *arg) {
+    int clientfd = *((int *)arg);
+    free(arg);
+
+    // Add the new client to the list
+    if (num_clients < MAX_PENDING_CONNECTIONS) {
+        clients[num_clients++] = clientfd;
+    } else {
+        ERRO("Max number of clients reached\n");
+        close(clientfd);
+        pthread_exit(NULL);
+    }
+
+    while (1) {
+        char buffer[BUFFER_SIZE] = {0};
+        ssize_t bytes_received = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
+
+        if (bytes_received <= 0) {
+            INFO("Client disconnected\n");
+            break;
+        }
+
+        buffer[bytes_received] = '\0'; // Ensure null-termination
+
+        struct Data *data = string_to_data(buffer);
+
+        if (data) {
+            print_message(data);
+
+            // Broadcast the message to all clients
+            for (int i = 0; i < num_clients; ++i) {
+                if (clients[i] != clientfd) {
+                    send(clients[i], data_to_string(*data), bytes_received, 0);
+                }
+            }
+
+            free(data->user);
+            free(data->message);
+            free(data);
+        }
+    }
+
+    // Remove the disconnected client from the list
+    for (int i = 0; i < num_clients; ++i) {
+        if (clients[i] == clientfd) {
+            for (int j = i; j < num_clients - 1; ++j) {
+                clients[j] = clients[j + 1];
+            }
+            num_clients--;
+            break;
+        }
+    }
+
+    close(clientfd);
+    pthread_exit(NULL);
+}
+
+void serve(const char *ip_address, int port, char* username) {
+    if(username != NULL && !is_empty(username)){
+        _username = (char*) calloc(strlen(username), sizeof(char));
+        strcpy(_username, username);
+    }
+
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in address = {
@@ -23,13 +116,20 @@ void serve(const char* ip_address, int port) {
         .sin_addr = {inet_addr(ip_address)}
     };
 
-    if(bind(sockfd, (struct sockaddr*)&address, sizeof(address)) < 0) {
+    if (bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
         handle_error("Bind Failed");
     }
 
-    INFO("Waiting for a client to connect\n");
-    if(listen(sockfd, MAX_PENDING_CONNECTIONS) < 0) {
+    INFO("Waiting for clients to connect\n");
+    if (listen(sockfd, MAX_PENDING_CONNECTIONS) < 0) {
         handle_error("Listen failed");
+    }
+
+    pthread_t stdin_thread;
+    if (pthread_create(&stdin_thread, NULL, handle_stdin, NULL) != 0) {
+        ERRO("Error creating thread for stdin\n");
+    } else {
+        pthread_detach(stdin_thread);
     }
 
     while (1) {
@@ -42,58 +142,16 @@ void serve(const char* ip_address, int port) {
 
         INFO("Client connected\n");
 
-        struct pollfd fds[2] = {
-            {
-                0, // stdin
-                POLLIN,
-                0
-            },
-            {
-                clientfd,
-                POLLIN,
-                0
-            }
-        };
+        pthread_t thread;
+        int *client_arg = malloc(sizeof(int));
+        *client_arg = clientfd;
 
-        while (1) {
-            char buffer[BUFFER_SIZE] = { 0 };
-
-            poll(fds, 2, TIMEOUT_MS);
-
-            if (fds[0].revents & POLLIN) {
-                read(0, buffer, BUFFER_SIZE - 1);
-
-                if(is_empty(buffer)) continue;
-
-                buffer[strcspn(buffer, "\n")] = 0; // remove newline
-
-                struct Data data = {
-                    .id = sockfd,
-                    .user = "server",
-                    .message = buffer,
-                    .time = get_current_time()
-                };
-
-                send(clientfd, data_to_string(data), BUFFER_SIZE - 1, 0);
-            } else if (fds[1].revents & POLLIN) {
-                int bytes_received = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
-
-                if (bytes_received <= 0) {
-                    INFO("Client disconnected\n");
-                    close(clientfd);
-                    break;
-                }
-
-                struct Data* data = string_to_data(buffer);
-
-                if(data){
-                    print_message(data);
-
-                    free(data->user);
-                    free(data->message);
-                    free(data);
-                }
-            }
+        if (pthread_create(&thread, NULL, handle_client, client_arg) != 0) {
+            ERRO("Error creating thread\n");
+            close(clientfd);
+            free(client_arg); // Free the allocated memory
+        } else {
+            pthread_detach(thread);
         }
     }
 

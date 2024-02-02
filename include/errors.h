@@ -1,0 +1,6 @@
+#ifndef ERRORS_H 
+#define ERRORS_H 
+
+#define ERROR_USERNAME_EXISTS "USERNAME EXISTS"
+
+#endif // ERRORS_H

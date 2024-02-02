@@ -12,7 +12,7 @@ cd cchat
 
 ## Usage
 
-> If you want to use this remotely you will have to forward the IP adddress of
+> If you want to use this remotely you will have to forward the IP adddress and port of
 your computer
 
 ### Start a server
