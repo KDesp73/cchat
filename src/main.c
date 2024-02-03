@@ -63,6 +63,19 @@ void check_address_and_port(char *ip_address, int port) {
 
 int main(int argc, char **argv) {
     srand(time(NULL));
+    const char* home = getenv("HOME");
+    const char* rest = "/.config/cchat/username";
+
+    if(home == NULL){
+        handle_error("HOME environment variable not set\n");
+    }
+
+    char username_path[strlen(home) + strlen(rest) + 1];
+
+    strcpy(username_path, home);
+    strcat(username_path, rest);
+
+    DEBU("username_path: %s\n", username_path);
 
     int port = -345678;
     char *ip_address = NULL;
