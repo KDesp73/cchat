@@ -69,10 +69,22 @@ void connect_to(const char* ip_address, int port, char* username){
             struct Data* data = string_to_data(buffer);
 
             if(data){
-                if(data->is_error){
-                    ERRO("%s", data->message);
-                } else {
-                    print_message(data);
+                switch (data->status) {
+                    case MESSAGE:
+                        print_message(data);
+                        break;
+                    case ERROR:
+                        ERRO("%s\n", data->message);
+                        break;
+                    case INFORMATION: 
+                        INFO("%s\n", data->message);
+                        break;
+                    case WARNING:
+                        WARN("%s\n", data->message);
+                        break;
+                    default:
+                        fprintf(stderr, "Invalid status\n");
+                        break;
                 }
 
 
