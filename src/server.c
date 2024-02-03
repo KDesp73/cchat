@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -10,16 +11,17 @@
 
 #include "server.h"
 #include "data.h"
+#include "errors.h"
 #include "logging.h"
 #include "utils.h"
-
-#define MAX_PENDING_CONNECTIONS 10
-#define TIMEOUT_MS 50000
-#define BUFFER_SIZE 256
+#include "config.h"
 
 int clients[MAX_PENDING_CONNECTIONS];
 int num_clients = 0;
+int usernames[MAX_PENDING_CONNECTIONS];
+int num_usernames = 0;
 char* _username = NULL;
+int _sockfd = -1;
 
 void *handle_stdin(void *arg) {
     while (1) {
@@ -53,7 +55,11 @@ void *handle_client(void *arg) {
     if (num_clients < MAX_PENDING_CONNECTIONS) {
         clients[num_clients++] = clientfd;
     } else {
-        ERRO("Max number of clients reached\n");
+        ERRO("%s\n", ERROR_MAX_CLIENTS_REACHED);
+        
+        // Send error message to client
+        send(clientfd, data_to_string(create_error_data(ERROR_MAX_CLIENTS_REACHED)), BUFFER_SIZE, 0);
+
         close(clientfd);
         pthread_exit(NULL);
     }
@@ -102,13 +108,23 @@ void *handle_client(void *arg) {
     pthread_exit(NULL);
 }
 
+void siginthandler(int params){
+    INFO("Closing server...\n");
+    close_server(_sockfd); 
+    INFO("Server closed\n");
+    
+    exit(1);
+}
+
 void serve(const char *ip_address, int port, char* username) {
+	signal(SIGINT, siginthandler);
+
     if(username != NULL && !is_empty(username)){
         _username = (char*) calloc(strlen(username), sizeof(char));
         strcpy(_username, username);
     }
 
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    _sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in address = {
         .sin_family = AF_INET,
@@ -116,12 +132,12 @@ void serve(const char *ip_address, int port, char* username) {
         .sin_addr = {inet_addr(ip_address)}
     };
 
-    if (bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+    if (bind(_sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
         handle_error("Bind Failed");
     }
 
     INFO("Waiting for clients to connect\n");
-    if (listen(sockfd, MAX_PENDING_CONNECTIONS) < 0) {
+    if (listen(_sockfd, MAX_PENDING_CONNECTIONS) < 0) {
         handle_error("Listen failed");
     }
 
@@ -133,7 +149,7 @@ void serve(const char *ip_address, int port, char* username) {
     }
 
     while (1) {
-        int clientfd = accept(sockfd, 0, 0);
+        int clientfd = accept(_sockfd, 0, 0);
 
         if (clientfd < 0) {
             ERRO("Error accepting connection\n");
@@ -141,6 +157,8 @@ void serve(const char *ip_address, int port, char* username) {
         }
 
         INFO("Client connected\n");
+
+        // TODO: check username
 
         pthread_t thread;
         int *client_arg = malloc(sizeof(int));
@@ -154,6 +172,53 @@ void serve(const char *ip_address, int port, char* username) {
             pthread_detach(thread);
         }
     }
+    
+    close_server(_sockfd);
+}
 
+void close_server(int sockfd){
+    for (int i = 0; i < num_clients; ++i) {
+        send(clients[i], data_to_string(create_info_data("Server closed")), BUFFER_SIZE, 0);
+    }
+    
     close(sockfd);
+}
+
+struct Data create_error_data(const char* message){
+    struct Data data;
+
+    data.id = -1;
+    data.user = ((_username == NULL) ? "server" : _username);
+    data.status = ERROR;
+    data.time = get_current_time();
+    data.message = (char*) calloc(strlen(message), sizeof(char));
+    strcpy(data.message, message);
+
+    return data;
+}
+
+struct Data create_warning_data(const char* message){
+    struct Data data;
+
+    data.id = -1;
+    data.user = ((_username == NULL) ? "server" : _username);
+    data.status = WARNING;
+    data.time = get_current_time();
+    data.message = (char*) calloc(strlen(message), sizeof(char));
+    strcpy(data.message, message);
+
+    return data;
+}
+
+struct Data create_info_data(const char* message){
+    struct Data data;
+
+    data.id = -1;
+    data.user = ((_username == NULL) ? "server" : _username);
+    data.status = INFORMATION;
+    data.time = get_current_time();
+    data.message = (char*) calloc(strlen(message), sizeof(char));
+    strcpy(data.message, message);
+
+    return data;
 }

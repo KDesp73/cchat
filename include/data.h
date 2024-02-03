@@ -3,10 +3,16 @@
 
 #include <time.h>
 
+#define MESSAGE 0
+#define ERROR 1
+#define INFORMATION 2
+#define WARNING 3
+
 struct Data {
     int id;
     char* user;
     char* message;
+    size_t status;
     time_t time;
 };
 

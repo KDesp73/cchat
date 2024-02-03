@@ -71,11 +71,8 @@ int main(int argc, char **argv) {
     }
 
     char username_path[strlen(home) + strlen(rest) + 1];
-
     strcpy(username_path, home);
     strcat(username_path, rest);
-
-    DEBU("username_path: %s\n", username_path);
 
     int port = -345678;
     char *ip_address = NULL;
@@ -85,10 +82,11 @@ int main(int argc, char **argv) {
         {"port", required_argument, NULL, 'p'},
         {"version", no_argument, NULL, 'v'},
         {"username", required_argument, NULL, 'u'},
+        {"debug", no_argument, NULL, 'd'},
         {NULL, 0, NULL, 0}};
 
     int opt;
-    while ((opt = getopt_long(argc, argv, "a:p:vu:", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "a:p:vu:d", long_options, NULL)) != -1) {
         switch (opt) {
         case 'p':
             port = atoi(optarg);
@@ -102,12 +100,16 @@ int main(int argc, char **argv) {
         case 'u':
             arg_username = optarg;
             break;
+        case 'd':
+            debug = 1;
+            break;
         default:
             INFO("Usage: %s [serve|connect] -a [option] -p [option]\n", argv[0]);
             exit(1);
         }
     }
 
+    DEBU("username_path: %s\n", username_path);
     check_address_and_port(ip_address, port);
 
     char *command = argv[argc - 1];
