@@ -7,6 +7,7 @@ A simple chat service for the terminal written in C
 ```console
 git clone --depth=1 https://github.com/KDesp73/cchat
 cd cchat
+make
 ./install.sh
 ```
 
@@ -27,10 +28,21 @@ cchat serve --address 127.0.0.1 --port 1234
 cchat connect --address 127.0.0.1 --port 1234
 ```
 
-## Limitations
+### Set a username
 
-- Currently supporting only one client
-- Poor UI
+Run
+
+```console
+cd ~/.config/cchat
+echo "[username]" > username
+```
+
+## Arguments
+
+- `-a`, `--address`: Specify the ip address
+- `-p`, `--port`: Specify the port
+- `-u`, `--username`: Specify your username. Overrides the file username
+- `-v`, `--version`: Print the program's version
 
 ## License
 

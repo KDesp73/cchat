@@ -5,6 +5,5 @@
 #define TIMEOUT_MS 50000
 #define BUFFER_SIZE 256
 #define VERSION "1.0.2"
-static const char* username_path = "./username";
 
 #endif // CONFIG_H

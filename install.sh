@@ -6,6 +6,12 @@ if [ "$1" == "clean" ]; then
 fi
 
 exe="cchat"
+config_dir="$HOME/.config/cchat"
+
+if [[ ! -d "$config_dir" ]]; then
+    mkdir -p ~/.config/cchat
+    echo "[INFO] Created ~/.config/cchat directory"
+fi
 
 if [ -f "$exe" ]; then
     # Install the executable
