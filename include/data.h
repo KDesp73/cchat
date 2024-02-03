@@ -7,6 +7,7 @@ struct Data {
     int id;
     char* user;
     char* message;
+    size_t is_error;
     time_t time;
 };
 

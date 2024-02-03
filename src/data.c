@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "data.h"
-#include "config.h"
-#include "logging.h"
 #include "screen.h"
 
 void print_data(struct Data data){
@@ -11,6 +9,7 @@ void print_data(struct Data data){
     printf("\tid: %d\n", data.id);
     printf("\tuser: %s\n", data.user);
     printf("\tmessage: %s\n", data.message);
+    printf("\tis_error: %zu\n", data.is_error);
     printf("\ttime: %ld\n", data.time);
     printf("}\n");
 }
@@ -22,8 +21,10 @@ void print_message(struct Data* data){
 }
 
 char* data_to_string(struct Data data) {
+    char* formatting = "%d,%s,%s,%zu,%ld";
+
     // Determine required size
-    size_t len = snprintf(NULL, 0, "%d,%s,%s,%ld", data.id, data.user, data.message, data.time);
+    size_t len = snprintf(NULL, 0, formatting, data.id, data.user, data.message, data.is_error, data.time);
 
     // Allocate memory
     char *datastr = malloc(sizeof *datastr * (len + 1)); // +1 for null terminator
@@ -33,7 +34,7 @@ char* data_to_string(struct Data data) {
     }
 
     // Use snprintf with allocated buffer
-    if (snprintf(datastr, len + 1, "%d,%s,%s,%ld", data.id, data.user, data.message, data.time) < 0) {
+    if (snprintf(datastr, len + 1, formatting, data.id, data.user, data.message, data.is_error, data.time) < 0) {
         fprintf(stderr, "%s() error: snprintf returned an error.\n", __func__);
         free(datastr); // Free the allocated memory
         return NULL;   // Return NULL on snprintf error
@@ -80,6 +81,16 @@ struct Data *string_to_data(char *str) {
         return NULL;
     }
     data->message = strdup(token);
+
+    // Parse and set the error flag
+    if (!token) {
+        fprintf(stderr, "Invalid input string.\n");
+        free(data->user);
+        free(data->message);
+        free(data);
+        return NULL;
+    }
+    data->is_error = atoi(token);
 
     // Parse and set the time
     token = strtok(NULL, ",");

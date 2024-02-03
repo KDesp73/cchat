@@ -20,7 +20,7 @@
     LOG("WARN", format, ##__VA_ARGS__);
 
 #define DEBU(format, ...) \
-    LOG("DEBU", format, ##__VA_ARGS__);
+    do{ if(debug) LOG("DEBU", format, ##__VA_ARGS__); } while(0);
 
 
 #endif // LOGGING_H
