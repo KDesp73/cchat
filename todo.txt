@@ -9,3 +9,4 @@ DONE: usernames
 DONE: timestamps
 DONE: handle multiple clients
 DONE: autocomplete commands
+DONE: errors

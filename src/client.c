@@ -41,6 +41,7 @@ void connect_to(const char* ip_address, int port, char* username){
         }
     };
 
+    INFO("Connected as: %s\n", username);
     while(1) {
         char buffer[BUFFER_SIZE] = { 0 };
 

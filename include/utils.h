@@ -10,5 +10,6 @@ time_t get_current_time();
 char* expand_time(time_t time);
 char* read_file_line(const char* path);
 char* random_string(size_t length);
+int is_in(char* str, char** list, int size);
 
 #endif // UTILS_H

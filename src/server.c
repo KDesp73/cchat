@@ -20,6 +20,7 @@ int clients[MAX_PENDING_CONNECTIONS];
 int num_clients = 0;
 int usernames[MAX_PENDING_CONNECTIONS];
 int num_usernames = 0;
+
 char* _username = NULL;
 int _sockfd = -1;
 
@@ -109,11 +110,10 @@ void *handle_client(void *arg) {
 }
 
 void siginthandler(int params){
-    INFO("Closing server...\n");
     close_server(_sockfd); 
     INFO("Server closed\n");
     
-    exit(1);
+    exit(0);
 }
 
 void serve(const char *ip_address, int port, char* username) {
@@ -136,6 +136,7 @@ void serve(const char *ip_address, int port, char* username) {
         handle_error("Bind Failed");
     }
 
+    INFO("Press Ctrl+C to close server\n");
     INFO("Waiting for clients to connect\n");
     if (listen(_sockfd, MAX_PENDING_CONNECTIONS) < 0) {
         handle_error("Listen failed");
