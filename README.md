@@ -44,12 +44,6 @@ echo "[username]" > username
 - `-u`, `--username`: Specify your username. Overrides the file username
 - `-v`, `--version`: Print the program's version
 
-
-## Limitations
-
-- Currently supporting only one client
-- Poor UI
-
 ## License
 
 [GNU](./LICENSE)
