@@ -59,7 +59,7 @@ void *handle_client(void *arg) {
         ERRO("%s\n", ERROR_MAX_CLIENTS_REACHED);
         
         // Send error message to client
-        send(clientfd, data_to_string(create_error_data(ERROR_MAX_CLIENTS_REACHED)), BUFFER_SIZE, 0);
+        send(clientfd, data_to_string(create_data(ERROR_MAX_CLIENTS_REACHED, ERROR)), BUFFER_SIZE, 0);
 
         close(clientfd);
         pthread_exit(NULL);
@@ -159,7 +159,7 @@ void serve(const char *ip_address, int port, char* username) {
 
         INFO("Client connected\n");
 
-        // TODO: check username
+        // TODO: check if username is already in use
 
         pthread_t thread;
         int *client_arg = malloc(sizeof(int));
@@ -179,18 +179,18 @@ void serve(const char *ip_address, int port, char* username) {
 
 void close_server(int sockfd){
     for (int i = 0; i < num_clients; ++i) {
-        send(clients[i], data_to_string(create_info_data("Server closed")), BUFFER_SIZE, 0);
+        send(clients[i], data_to_string(create_data("Server closed", INFORMATION)), BUFFER_SIZE, 0);
     }
     
     close(sockfd);
 }
 
-struct Data create_error_data(const char* message){
+struct Data create_data(const char* message, int status){
     struct Data data;
 
     data.id = -1;
     data.user = ((_username == NULL) ? "server" : _username);
-    data.status = ERROR;
+    data.status = status;
     data.time = get_current_time();
     data.message = (char*) calloc(strlen(message), sizeof(char));
     strcpy(data.message, message);
@@ -198,28 +198,3 @@ struct Data create_error_data(const char* message){
     return data;
 }
 
-struct Data create_warning_data(const char* message){
-    struct Data data;
-
-    data.id = -1;
-    data.user = ((_username == NULL) ? "server" : _username);
-    data.status = WARNING;
-    data.time = get_current_time();
-    data.message = (char*) calloc(strlen(message), sizeof(char));
-    strcpy(data.message, message);
-
-    return data;
-}
-
-struct Data create_info_data(const char* message){
-    struct Data data;
-
-    data.id = -1;
-    data.user = ((_username == NULL) ? "server" : _username);
-    data.status = INFORMATION;
-    data.time = get_current_time();
-    data.message = (char*) calloc(strlen(message), sizeof(char));
-    strcpy(data.message, message);
-
-    return data;
-}
