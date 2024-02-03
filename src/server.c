@@ -10,12 +10,10 @@
 
 #include "server.h"
 #include "data.h"
+#include "errors.h"
 #include "logging.h"
 #include "utils.h"
-
-#define MAX_PENDING_CONNECTIONS 10
-#define TIMEOUT_MS 50000
-#define BUFFER_SIZE 256
+#include "config.h"
 
 int clients[MAX_PENDING_CONNECTIONS];
 int num_clients = 0;
@@ -53,7 +51,11 @@ void *handle_client(void *arg) {
     if (num_clients < MAX_PENDING_CONNECTIONS) {
         clients[num_clients++] = clientfd;
     } else {
-        ERRO("Max number of clients reached\n");
+        ERRO(ERROR_MAX_CLIENTS_REACHED);
+        
+        // Send error message to client
+        send(clientfd, data_to_string(create_error_data(ERROR_MAX_CLIENTS_REACHED)), BUFFER_SIZE, 0);
+
         close(clientfd);
         pthread_exit(NULL);
     }
@@ -156,4 +158,17 @@ void serve(const char *ip_address, int port, char* username) {
     }
 
     close(sockfd);
+}
+
+struct Data create_error_data(const char* message){
+    struct Data data;
+
+    data.id = -1;
+    data.user = ((_username == NULL) ? "server" : _username);
+    data.is_error = 1;
+    data.time = get_current_time();
+    data.message = (char*) calloc(strlen(message), sizeof(char));
+    strcpy(data.message, message);
+
+    return data;
 }

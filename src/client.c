@@ -69,7 +69,12 @@ void connect_to(const char* ip_address, int port, char* username){
             struct Data* data = string_to_data(buffer);
 
             if(data){
-                print_message(data);
+                if(data->is_error){
+                    ERRO("%s", data->message);
+                } else {
+                    print_message(data);
+                }
+
 
                 free(data->user);
                 free(data->message);

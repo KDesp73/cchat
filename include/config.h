@@ -4,7 +4,7 @@
 #define MAX_PENDING_CONNECTIONS 10
 #define TIMEOUT_MS 50000
 #define BUFFER_SIZE 256
-#define VERSION "1.0.2"
+#define VERSION "1.0.3"
 
 static int debug = 0;
 
