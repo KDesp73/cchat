@@ -110,6 +110,8 @@ int main(int argc, char **argv) {
     }
 
     DEBU("username_path: %s\n", username_path);
+    DEBU("username: %s\n", read_file_line(username_path));
+
     check_address_and_port(ip_address, port);
 
     char *command = argv[argc - 1];
