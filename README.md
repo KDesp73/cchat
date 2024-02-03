@@ -2,14 +2,6 @@
 
 A simple chat service for the terminal written in C
 
-## Preview
-
-
-
-https://github.com/KDesp73/cchat/assets/63654361/bd8a11b6-328a-43d4-a276-7946d4a9a6b9
-
-
-
 ## Install 
 
 ```console
