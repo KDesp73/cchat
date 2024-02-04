@@ -17,7 +17,7 @@
 #include "config.h"
 
 int clients[MAX_PENDING_CONNECTIONS];
-char* usernames[MAX_PENDING_CONNECTIONS];
+char* usernames[MAX_PENDING_CONNECTIONS+2];
 int num_clients = 0;
 int num_usernames = 0;
 
@@ -69,7 +69,7 @@ void *handle_client(void *arg) {
 
         close(clientfd);
         pthread_exit(NULL);
-    } else if(is_in(check_data->user, usernames, num_clients)) {
+    } else if(is_in(check_data->user, usernames, num_usernames)) {
         WARN("%s\n", ERROR_USERNAME_EXISTS);
         send(clientfd, data_to_string(create_data(ERROR_USERNAME_EXISTS, WARNING)), BUFFER_SIZE, 0);
 

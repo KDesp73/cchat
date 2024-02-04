@@ -8,7 +8,9 @@
 #include <stdio.h>
 
 int is_in(char* str, char** list, int size){
+    if(str == NULL) return -1;
     for(size_t i = 0; i < size; ++i){
+        if(list[i] == NULL) continue;
         if(strcmp(str, list[i]) == 0) return 1;
     }
     return 0;
