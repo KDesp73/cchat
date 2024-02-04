@@ -1,12 +1,20 @@
 #!/bin/bash
 
-if [ "$1" == "clean" ]; then
-    make clean
-    make
-fi
-
 exe="cchat"
 config_dir="$HOME/.config/cchat"
+
+
+if [ "$1" == "clean" ]; then
+    # rm -rf ~/.config/cchat
+    sudo rm -rf /usr/bin/$exe
+    sudo rm -rf /etc/bash_completion.d/cchat 
+    sudo rm -rf /usr/share/zsh/functions/Completion/_cchat
+    sudo rm -rf /usr/share/man/man8/$exe.8
+    sudo rm -rf /usr/share/man/man8/$exe.8.gz 
+
+    echo "[INFO] Application uninstalled successfully"
+    exit 0
+fi
 
 if [[ ! -d "$config_dir" ]]; then
     mkdir -p ~/.config/cchat
@@ -31,7 +39,7 @@ if [ -f "$exe" ]; then
     echo "[INFO] bash completion installed successfully"
 
     # Install Zsh completion
-    sudo install -m 644 ./completion/cchat-completion.zsh /usr/share/zsh/functions/Completion/_cchat
+    sudo install -m 644 ./completion/cchat-completion.zsh /usr/share/zsh/functions/Completion/cchat
     if [ $? -ne 0 ]; then
         echo "[ERRO] Failed to install Zsh completion"
         exit 1
