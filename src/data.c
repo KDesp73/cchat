@@ -59,14 +59,13 @@ struct Data *string_to_data(char *str) {
     }
 
     // Tokenize the input string
+    // Parse and set the id
     char *token = strtok(str, ",");
     if (!token) {
         fprintf(stderr, "Invalid input string (id).\n");
         free(data);
         return NULL;
     }
-
-    // Parse and set the id
     data->id = atoi(token);
 
     // Parse and set the user

@@ -49,7 +49,7 @@ void check_address_and_port(char *ip_address, int port) {
         exit(1);
     }
 
-    if (!isValidIpAddress(ip_address)) {
+    if (!is_valid_ip_address(ip_address)) {
         ERRO("Invalid ip address\n");
         exit(1);
     }
@@ -110,6 +110,8 @@ int main(int argc, char **argv) {
     }
 
     DEBU("username_path: %s\n", username_path);
+    DEBU("username: %s\n", read_file_line(username_path));
+
     check_address_and_port(ip_address, port);
 
     char *command = argv[argc - 1];

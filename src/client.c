@@ -41,6 +41,15 @@ void connect_to(const char* ip_address, int port, char* username){
         }
     };
 
+    // Send initial message to the server
+    struct Data data = {
+        .user = username,
+        .time = get_current_time(),
+        .status = INFORMATION,
+        .message = "OK?"
+    };
+    send(sockfd, data_to_string(data), BUFFER_SIZE, 0);
+
     while(1) {
         char buffer[BUFFER_SIZE] = { 0 };
 
@@ -57,6 +66,7 @@ void connect_to(const char* ip_address, int port, char* username){
                 .id = sockfd,
                 .user = username,
                 .message = buffer,
+                .status = MESSAGE,
                 .time = get_current_time()
             };
 
@@ -82,8 +92,11 @@ void connect_to(const char* ip_address, int port, char* username){
                     case WARNING:
                         WARN("%s\n", data->message);
                         break;
+                    case COMMAND:
+                        printf("%s\n", data->message);
+                        break;
                     default:
-                        fprintf(stderr, "Invalid status\n");
+                        fprintf(stderr, "Invalid status: %zu\n", data->status);
                         break;
                 }
 

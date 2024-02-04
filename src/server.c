@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "server.h"
+#include "commands.h"
 #include "data.h"
 #include "errors.h"
 #include "logging.h"
@@ -17,9 +18,10 @@
 #include "config.h"
 
 int clients[MAX_PENDING_CONNECTIONS];
+char* usernames[MAX_PENDING_CONNECTIONS+2];
 int num_clients = 0;
-int usernames[MAX_PENDING_CONNECTIONS];
 int num_usernames = 0;
+
 char* _username = NULL;
 int _sockfd = -1;
 
@@ -31,10 +33,17 @@ void *handle_stdin(void *arg) {
         if (!is_empty(buffer)) {
             buffer[strcspn(buffer, "\n")] = 0; // remove newline
 
+            if(buffer[0] == '\\'){
+                char* command = buffer + 1;
+                run_command(command, _sockfd);
+                continue;
+            }
+
             struct Data data = {
                 .id = -1,  // Use a special ID for messages from the server
                 .user = ((_username == NULL) ? "server" : _username),
                 .message = buffer,
+                .status = MESSAGE,
                 .time = get_current_time()
             };
 
@@ -51,18 +60,40 @@ void *handle_client(void *arg) {
     int clientfd = *((int *)arg);
     free(arg);
 
-    // Add the new client to the list
-    if (num_clients < MAX_PENDING_CONNECTIONS) {
-        clients[num_clients++] = clientfd;
-    } else {
-        ERRO("%s\n", ERROR_MAX_CLIENTS_REACHED);
-        
-        // Send error message to client
-        send(clientfd, data_to_string(create_error_data(ERROR_MAX_CLIENTS_REACHED)), BUFFER_SIZE, 0);
-
+    // Get init data from client
+    char check_buf[BUFFER_SIZE];
+    if(recv(clientfd, check_buf, BUFFER_SIZE, 0) <= 0){
+        WARN("No init data received");
         close(clientfd);
         pthread_exit(NULL);
     }
+    struct Data* check_data = string_to_data(check_buf);
+
+    // Add the new client to the list
+    if (num_clients >= MAX_PENDING_CONNECTIONS) {
+        ERRO("%s\n", ERROR_MAX_CLIENTS_REACHED);
+        send(clientfd, data_to_string(create_data(ERROR_MAX_CLIENTS_REACHED, ERROR)), BUFFER_SIZE, 0);
+
+        close(clientfd);
+        pthread_exit(NULL);
+    } else if(is_in(check_data->user, usernames, num_usernames)) {
+        WARN("%s\n", ERROR_USERNAME_EXISTS);
+        send(clientfd, data_to_string(create_data(ERROR_USERNAME_EXISTS, WARNING)), BUFFER_SIZE, 0);
+
+        close(clientfd);
+        pthread_exit(NULL);
+    } else {
+        clients[num_clients] = clientfd;
+        usernames[num_usernames] = check_data->user;
+        num_clients++;
+        num_usernames++;
+    }
+
+    INFO("Client '%s' connected\n", check_data->user);
+
+    char str[] = "Connected as: ";
+    strcat(str, check_data->user);
+    send(clientfd, data_to_string(create_data(str, INFORMATION)), BUFFER_SIZE, 0);
 
     while (1) {
         char buffer[BUFFER_SIZE] = {0};
@@ -78,12 +109,19 @@ void *handle_client(void *arg) {
         struct Data *data = string_to_data(buffer);
 
         if (data) {
-            print_message(data);
+            // Check if message is command
+            if(data->message[0] == '\\') {
+                char* command = "list"; 
+                DEBU("Command: %s\n", command);
+                run_command(command, clientfd);
+            } else {
+                print_message(data);
 
-            // Broadcast the message to all clients
-            for (int i = 0; i < num_clients; ++i) {
-                if (clients[i] != clientfd) {
-                    send(clients[i], data_to_string(*data), bytes_received, 0);
+                // Broadcast the message to all clients
+                for (int i = 0; i < num_clients; ++i) {
+                    if (clients[i] != clientfd) {
+                        send(clients[i], data_to_string(*data), bytes_received, 0);
+                    }
                 }
             }
 
@@ -98,8 +136,10 @@ void *handle_client(void *arg) {
         if (clients[i] == clientfd) {
             for (int j = i; j < num_clients - 1; ++j) {
                 clients[j] = clients[j + 1];
+                usernames[j] = usernames[j + 1];
             }
             num_clients--;
+            num_usernames--;
             break;
         }
     }
@@ -109,11 +149,10 @@ void *handle_client(void *arg) {
 }
 
 void siginthandler(int params){
-    INFO("Closing server...\n");
     close_server(_sockfd); 
     INFO("Server closed\n");
     
-    exit(1);
+    exit(0);
 }
 
 void serve(const char *ip_address, int port, char* username) {
@@ -123,6 +162,10 @@ void serve(const char *ip_address, int port, char* username) {
         _username = (char*) calloc(strlen(username), sizeof(char));
         strcpy(_username, username);
     }
+
+    // Add server's username in the list of usernames
+    usernames[num_usernames++] = "server";
+    if(username == NULL) usernames[num_usernames++] = username;
 
     _sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -136,6 +179,7 @@ void serve(const char *ip_address, int port, char* username) {
         handle_error("Bind Failed");
     }
 
+    INFO("Press Ctrl+C to close server\n");
     INFO("Waiting for clients to connect\n");
     if (listen(_sockfd, MAX_PENDING_CONNECTIONS) < 0) {
         handle_error("Listen failed");
@@ -156,9 +200,6 @@ void serve(const char *ip_address, int port, char* username) {
             continue;
         }
 
-        INFO("Client connected\n");
-
-        // TODO: check username
 
         pthread_t thread;
         int *client_arg = malloc(sizeof(int));
@@ -178,18 +219,19 @@ void serve(const char *ip_address, int port, char* username) {
 
 void close_server(int sockfd){
     for (int i = 0; i < num_clients; ++i) {
-        send(clients[i], data_to_string(create_info_data("Server closed")), BUFFER_SIZE, 0);
+        send(clients[i], data_to_string(create_data("Server closed", INFORMATION)), BUFFER_SIZE, 0);
+        close(clients[i]);
     }
     
     close(sockfd);
 }
 
-struct Data create_error_data(const char* message){
+struct Data create_data(const char* message, int status){
     struct Data data;
 
     data.id = -1;
     data.user = ((_username == NULL) ? "server" : _username);
-    data.status = ERROR;
+    data.status = status;
     data.time = get_current_time();
     data.message = (char*) calloc(strlen(message), sizeof(char));
     strcpy(data.message, message);
@@ -197,28 +239,31 @@ struct Data create_error_data(const char* message){
     return data;
 }
 
-struct Data create_warning_data(const char* message){
-    struct Data data;
+void run_command(char* command, int fd){
+    if(command == NULL) return;
 
-    data.id = -1;
-    data.user = ((_username == NULL) ? "server" : _username);
-    data.status = WARNING;
-    data.time = get_current_time();
-    data.message = (char*) calloc(strlen(message), sizeof(char));
-    strcpy(data.message, message);
+    char* buffer = (char*) calloc(num_usernames * BUFFER_SIZE, sizeof(char));
+    strcpy(buffer, "");
 
-    return data;
+    if(strcmp(command, COMMAND_LIST) == 0){
+        for(size_t i = 0; i < num_usernames; ++i){
+            if(usernames[i] == NULL) continue;
+            strcat(buffer, usernames[i]);
+            strcat(buffer, "\n");
+        }
+        if(fd == _sockfd){
+            printf("%s\n", buffer);
+        } else {
+            send(fd, data_to_string(create_data(buffer, COMMAND)), BUFFER_SIZE, 0);
+        }
+    } else {
+        if(fd == _sockfd) {
+            WARN("%s\n", ERROR_COMMAND_NOT_FOUND);
+        } else {
+            send(fd, data_to_string(create_data(ERROR_COMMAND_NOT_FOUND, WARNING)), BUFFER_SIZE, 0);
+        }
+    } 
+
+    free(buffer);
 }
 
-struct Data create_info_data(const char* message){
-    struct Data data;
-
-    data.id = -1;
-    data.user = ((_username == NULL) ? "server" : _username);
-    data.status = INFORMATION;
-    data.time = get_current_time();
-    data.message = (char*) calloc(strlen(message), sizeof(char));
-    strcpy(data.message, message);
-
-    return data;
-}

@@ -7,6 +7,15 @@
 #include <ctype.h>
 #include <stdio.h>
 
+int is_in(char* str, char** list, int size){
+    if(str == NULL) return -1;
+    for(size_t i = 0; i < size; ++i){
+        if(list[i] == NULL) continue;
+        if(strcmp(str, list[i]) == 0) return 1;
+    }
+    return 0;
+}
+
 int is_empty(const char *s) {
     while (*s != '\0') {
         if (!isspace((unsigned char)*s))
@@ -35,7 +44,7 @@ void print_args(int argc, char** argv){
     printf("\n");
 }
 
-int isValidIpAddress(char *ipAddress){
+int is_valid_ip_address(char *ipAddress){
     struct sockaddr_in sa;
     int result = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
     return result != 0;

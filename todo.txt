@@ -1,11 +1,14 @@
 TODO: saved connections
 TODO: different color for every user
-TODO: unique usernames
 TODO: password
 TODO: better ui (TUI)
+TODO: save chat-log after terminating
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: usernames
 DONE: timestamps
 DONE: handle multiple clients
 DONE: autocomplete commands
+DONE: errors
+DONE: unique usernames
+DONE: commands using '\'
