@@ -11,6 +11,7 @@
 
 #include "server.h"
 #include "commands.h"
+#include "screen.h"
 #include "data.h"
 #include "errors.h"
 #include "logging.h"
@@ -21,6 +22,15 @@ int clients[MAX_PENDING_CONNECTIONS];
 char* usernames[MAX_PENDING_CONNECTIONS+2];
 int num_clients = 0;
 int num_usernames = 0;
+
+char* colors[MAX_PENDING_CONNECTIONS + 1] = {
+    red, 
+    green, 
+    yellow, 
+    blue, 
+    purple, 
+    cyan, 
+};
 
 char* _username = NULL;
 int _sockfd = -1;
@@ -41,7 +51,7 @@ void *handle_stdin(void *arg) {
 
             struct Data data = {
                 .id = -1,  // Use a special ID for messages from the server
-                .user = ((_username == NULL) ? "server" : _username),
+                .user = color_username(((_username == NULL) ? "server" : _username), colors[0]),
                 .message = buffer,
                 .status = MESSAGE,
                 .time = get_current_time()
@@ -115,6 +125,8 @@ void *handle_client(void *arg) {
                 DEBU("Command: %s\n", command);
                 run_command(command, clientfd);
             } else {
+                
+                strcpy(data->user, color_username(data->user, colors[search_int(clientfd, clients, num_clients) + 1]));
                 print_message(data);
 
                 // Broadcast the message to all clients
@@ -265,5 +277,20 @@ void run_command(char* command, int fd){
     } 
 
     free(buffer);
+}
+char* color_username(const char* username, const char* color) {
+    size_t colored_username_size = strlen(color) + strlen(username) + strlen(reset) + 1;
+
+    char* colored_username = (char*)calloc(colored_username_size, sizeof(char));
+
+    if (colored_username != NULL) {
+        strcpy(colored_username, color);
+        strcat(colored_username, username);
+        strcat(colored_username, reset);
+    } else {
+        return NULL;
+    }
+
+    return colored_username;
 }
 

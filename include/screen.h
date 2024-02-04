@@ -1,6 +1,8 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
+#include <string.h>
+#include <stdlib.h>
 #define clear() printf("\033[H\033[J")
 #define gotoxy(x,y) printf("\033[%d;%dH", (y), (x))
 #define moveup(x) printf("\033[%dA", x);
@@ -18,6 +20,8 @@
 #define lgrey "\e[0;37m"
 #define dgrey "\e[0;38m"
 #define reset "\e[0;39m"
+
+char* color(int color_i);
 
 
 #endif // SCREEN_H

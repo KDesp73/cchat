@@ -7,6 +7,13 @@
 #include <ctype.h>
 #include <stdio.h>
 
+int search_int(int key, int *arr, size_t size){
+    for(size_t i = 0; i < size; i++){
+        if(key == arr[i]) return i;
+    }
+    return -1;
+}
+
 int is_in(char* str, char** list, int size){
     if(str == NULL) return -1;
     for(size_t i = 0; i < size; ++i){
