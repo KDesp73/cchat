@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "server.h"
+#include "commands.h"
 #include "data.h"
 #include "errors.h"
 #include "logging.h"
@@ -31,6 +32,12 @@ void *handle_stdin(void *arg) {
 
         if (!is_empty(buffer)) {
             buffer[strcspn(buffer, "\n")] = 0; // remove newline
+
+            if(buffer[0] == '\\'){
+                char* command = buffer + 1;
+                run_command(command, _sockfd);
+                continue;
+            }
 
             struct Data data = {
                 .id = -1,  // Use a special ID for messages from the server
@@ -102,12 +109,19 @@ void *handle_client(void *arg) {
         struct Data *data = string_to_data(buffer);
 
         if (data) {
-            print_message(data);
+            // Check if message is command
+            if(data->message[0] == '\\') {
+                char* command = "list"; 
+                DEBU("Command: %s\n", command);
+                run_command(command, clientfd);
+            } else {
+                print_message(data);
 
-            // Broadcast the message to all clients
-            for (int i = 0; i < num_clients; ++i) {
-                if (clients[i] != clientfd) {
-                    send(clients[i], data_to_string(*data), bytes_received, 0);
+                // Broadcast the message to all clients
+                for (int i = 0; i < num_clients; ++i) {
+                    if (clients[i] != clientfd) {
+                        send(clients[i], data_to_string(*data), bytes_received, 0);
+                    }
                 }
             }
 
@@ -223,5 +237,33 @@ struct Data create_data(const char* message, int status){
     strcpy(data.message, message);
 
     return data;
+}
+
+void run_command(char* command, int fd){
+    if(command == NULL) return;
+
+    char* buffer = (char*) calloc(num_usernames * BUFFER_SIZE, sizeof(char));
+    strcpy(buffer, "");
+
+    if(strcmp(command, COMMAND_LIST) == 0){
+        for(size_t i = 0; i < num_usernames; ++i){
+            if(usernames[i] == NULL) continue;
+            strcat(buffer, usernames[i]);
+            strcat(buffer, "\n");
+        }
+        if(fd == _sockfd){
+            printf("%s\n", buffer);
+        } else {
+            send(fd, data_to_string(create_data(buffer, COMMAND)), BUFFER_SIZE, 0);
+        }
+    } else {
+        if(fd == _sockfd) {
+            WARN("%s\n", ERROR_COMMAND_NOT_FOUND);
+        } else {
+            send(fd, data_to_string(create_data(ERROR_COMMAND_NOT_FOUND, WARNING)), BUFFER_SIZE, 0);
+        }
+    } 
+
+    free(buffer);
 }
 

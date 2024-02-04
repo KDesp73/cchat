@@ -18,8 +18,19 @@ fi
 
 if [[ ! -d "$config_dir" ]]; then
     mkdir -p ~/.config/cchat
-    echo "[INFO] Created ~/.config/cchat directory"
+    echo "[INFO] Created $config_dir directory"
 fi
+
+if [[ ! -d "$config_dir/logs" ]]; then
+    mkdir -p "$config_dir/logs"
+    # echo "[INFO] Created $config_dir/logs directory"
+fi
+
+if [[ ! -d "$config_dir/connections" ]]; then
+    mkdir -p "$config_dir/connections"
+    # echo "[INFO] Created $config_dir/connections directory"
+fi
+
 
 if [ -f "$exe" ]; then
     # Install the executable

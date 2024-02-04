@@ -92,8 +92,11 @@ void connect_to(const char* ip_address, int port, char* username){
                     case WARNING:
                         WARN("%s\n", data->message);
                         break;
+                    case COMMAND:
+                        printf("%s\n", data->message);
+                        break;
                     default:
-                        fprintf(stderr, "Invalid status\n");
+                        fprintf(stderr, "Invalid status: %zu\n", data->status);
                         break;
                 }
 

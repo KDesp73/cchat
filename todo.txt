@@ -11,3 +11,4 @@ DONE: handle multiple clients
 DONE: autocomplete commands
 DONE: errors
 DONE: unique usernames
+DONE: commands using '\'

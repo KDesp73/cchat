@@ -3,10 +3,13 @@
 
 #include <time.h>
 
-#define MESSAGE 0
-#define ERROR 1
-#define INFORMATION 2
-#define WARNING 3
+typedef enum {
+    MESSAGE,
+    ERROR,
+    INFORMATION,
+    WARNING,
+    COMMAND,
+} Status;
 
 struct Data {
     int id;
