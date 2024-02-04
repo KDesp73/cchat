@@ -19,8 +19,11 @@
 #define WARN(format, ...) \
     LOG("WARN", format, ##__VA_ARGS__);
 
-#define DEBU(format, ...) \
-    do{ if(debug) LOG("DEBU", format, ##__VA_ARGS__); } while(0);
-
+#ifdef DEBUG
+    #define DEBU(format, ...) \
+        do{ LOG("DEBU", format, ##__VA_ARGS__); } while(0);
+#else
+    #define DEBU(format, ...) 
+#endif // DEBUG
 
 #endif // LOGGING_H

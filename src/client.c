@@ -10,6 +10,7 @@
 #include "client.h"
 #include "data.h"
 #include "logging.h"
+#include "screen.h"
 #include "config.h"
 #include "utils.h"
 

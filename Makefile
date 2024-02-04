@@ -38,7 +38,7 @@ compile_commands.json: $(SRC_FILES)
 
 # FOR TESTING
 serve: $(TARGET)
-	./cchat serve --address 127.0.0.1 --port 9876 -d
+	./cchat serve --address 127.0.0.1 --port 9876
 
 connect: $(TARGET)
 	./cchat connect --address 127.0.0.1 --port 9876
