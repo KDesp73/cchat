@@ -244,6 +244,8 @@ void close_server(int sockfd){
         send(clients[i], data_to_string(create_data("Server closed", INFORMATION)), BUFFER_SIZE, 0);
         close(clients[i]);
     }
+
+    free(_username);
     
     close(sockfd);
 }

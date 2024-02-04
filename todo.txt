@@ -2,6 +2,7 @@ TODO: saved connections
 TODO: better ui (TUI)
 TODO: save chat-log after terminating
 TODO: more commands
+TODO: replace comma as the separator
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: usernames

@@ -31,7 +31,7 @@ void connect_to(const char* ip_address, int port, char* username){
 
     struct pollfd fds[2] = {
         {
-            0, // stdin
+            STDIN_FILENO,
             POLLIN,
             0
         },
