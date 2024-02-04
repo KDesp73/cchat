@@ -17,9 +17,8 @@
 #include "config.h"
 
 int clients[MAX_PENDING_CONNECTIONS];
+char* usernames[MAX_PENDING_CONNECTIONS];
 int num_clients = 0;
-int usernames[MAX_PENDING_CONNECTIONS];
-int num_usernames = 0;
 
 char* _username = NULL;
 int _sockfd = -1;
@@ -53,18 +52,39 @@ void *handle_client(void *arg) {
     int clientfd = *((int *)arg);
     free(arg);
 
+    // Get init data from client
+    char check_buf[BUFFER_SIZE];
+    if(recv(clientfd, check_buf, BUFFER_SIZE, 0) <= 0){
+        WARN("No init data received");
+        close(clientfd);
+        pthread_exit(NULL);
+    }
+    struct Data* check_data = string_to_data(check_buf);
+
     // Add the new client to the list
-    if (num_clients < MAX_PENDING_CONNECTIONS) {
-        clients[num_clients++] = clientfd;
-    } else {
+    if (num_clients >= MAX_PENDING_CONNECTIONS) {
         ERRO("%s\n", ERROR_MAX_CLIENTS_REACHED);
-        
-        // Send error message to client
         send(clientfd, data_to_string(create_data(ERROR_MAX_CLIENTS_REACHED, ERROR)), BUFFER_SIZE, 0);
 
         close(clientfd);
         pthread_exit(NULL);
+    } else if(is_in(check_data->user, usernames, num_clients)) {
+        WARN("%s\n", ERROR_USERNAME_EXISTS);
+        send(clientfd, data_to_string(create_data(ERROR_USERNAME_EXISTS, WARNING)), BUFFER_SIZE, 0);
+
+        close(clientfd);
+        pthread_exit(NULL);
+    } else {
+        clients[num_clients] = clientfd;
+        usernames[num_clients] = check_data->user;
+        num_clients++;
     }
+
+    INFO("Client '%s' connected\n", check_data->user);
+
+    char str[] = "Connected as: ";
+    strcat(str, check_data->user);
+    send(clientfd, data_to_string(create_data(str, INFORMATION)), BUFFER_SIZE, 0);
 
     while (1) {
         char buffer[BUFFER_SIZE] = {0};
@@ -100,6 +120,7 @@ void *handle_client(void *arg) {
         if (clients[i] == clientfd) {
             for (int j = i; j < num_clients - 1; ++j) {
                 clients[j] = clients[j + 1];
+                usernames[j] = usernames[j + 1];
             }
             num_clients--;
             break;
@@ -158,9 +179,6 @@ void serve(const char *ip_address, int port, char* username) {
             continue;
         }
 
-        INFO("Client connected\n");
-
-        // TODO: check if username is already in use
 
         pthread_t thread;
         int *client_arg = malloc(sizeof(int));

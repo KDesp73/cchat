@@ -41,7 +41,15 @@ void connect_to(const char* ip_address, int port, char* username){
         }
     };
 
-    INFO("Connected as: %s\n", username);
+    // Send initial message to the server
+    struct Data data = {
+        .user = username,
+        .time = get_current_time(),
+        .status = INFORMATION,
+        .message = "OK?"
+    };
+    send(sockfd, data_to_string(data), BUFFER_SIZE, 0);
+
     while(1) {
         char buffer[BUFFER_SIZE] = { 0 };
 
