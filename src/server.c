@@ -35,6 +35,16 @@ char* colors[MAX_PENDING_CONNECTIONS + 1] = {
 char* _username = NULL;
 int _sockfd = -1;
 
+// =========== SERVER UTILS ===========
+struct Data create_data(const char* message, int status);
+void close_server(int sockfd);
+void run_command(char* command, int clientfd);
+char* color_username(const char* username, const char* color);
+void *handle_stdin(void *arg);
+void *handle_client(void *arg);
+// =========== SERVER UTILS ===========
+
+
 void *handle_stdin(void *arg) {
     while (1) {
         char buffer[BUFFER_SIZE] = {0};
@@ -176,8 +186,8 @@ void serve(const char *ip_address, int port, char* username) {
     }
 
     // Add server's username in the list of usernames
-    usernames[num_usernames++] = "server";
-    if(username == NULL) usernames[num_usernames++] = username;
+    if(username != NULL) usernames[num_usernames++] = username;
+    else usernames[num_usernames++] = "server";
 
     _sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
