@@ -19,6 +19,7 @@
 int clients[MAX_PENDING_CONNECTIONS];
 char* usernames[MAX_PENDING_CONNECTIONS];
 int num_clients = 0;
+int num_usernames = 0;
 
 char* _username = NULL;
 int _sockfd = -1;
@@ -76,8 +77,9 @@ void *handle_client(void *arg) {
         pthread_exit(NULL);
     } else {
         clients[num_clients] = clientfd;
-        usernames[num_clients] = check_data->user;
+        usernames[num_usernames] = check_data->user;
         num_clients++;
+        num_usernames++;
     }
 
     INFO("Client '%s' connected\n", check_data->user);
@@ -123,6 +125,7 @@ void *handle_client(void *arg) {
                 usernames[j] = usernames[j + 1];
             }
             num_clients--;
+            num_usernames--;
             break;
         }
     }
@@ -145,6 +148,10 @@ void serve(const char *ip_address, int port, char* username) {
         _username = (char*) calloc(strlen(username), sizeof(char));
         strcpy(_username, username);
     }
+
+    // Add server's username in the list of usernames
+    usernames[num_usernames++] = "server";
+    if(username == NULL) usernames[num_usernames++] = username;
 
     _sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
