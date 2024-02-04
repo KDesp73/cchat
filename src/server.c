@@ -36,6 +36,7 @@ void *handle_stdin(void *arg) {
                 .id = -1,  // Use a special ID for messages from the server
                 .user = ((_username == NULL) ? "server" : _username),
                 .message = buffer,
+                .status = MESSAGE,
                 .time = get_current_time()
             };
 
@@ -180,6 +181,7 @@ void serve(const char *ip_address, int port, char* username) {
 void close_server(int sockfd){
     for (int i = 0; i < num_clients; ++i) {
         send(clients[i], data_to_string(create_data("Server closed", INFORMATION)), BUFFER_SIZE, 0);
+        close(clients[i]);
     }
     
     close(sockfd);

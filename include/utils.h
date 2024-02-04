@@ -5,7 +5,7 @@
 int is_empty(const char *s);
 char* pop_arg(int* argc, char** argv);
 void print_args(int argc, char** argv);
-int isValidIpAddress(char *ipAddress);
+int is_valid_ip_address(char *ipAddress);
 time_t get_current_time();
 char* expand_time(time_t time);
 char* read_file_line(const char* path);

@@ -39,7 +39,7 @@ if [ -f "$exe" ]; then
     echo "[INFO] bash completion installed successfully"
 
     # Install Zsh completion
-    sudo install -m 644 ./completion/cchat-completion.zsh /usr/share/zsh/functions/Completion/cchat
+    sudo install -m 644 ./completion/cchat-completion.zsh /usr/share/zsh/functions/Completion/_cchat
     if [ $? -ne 0 ]; then
         echo "[ERRO] Failed to install Zsh completion"
         exit 1

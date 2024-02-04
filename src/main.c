@@ -49,7 +49,7 @@ void check_address_and_port(char *ip_address, int port) {
         exit(1);
     }
 
-    if (!isValidIpAddress(ip_address)) {
+    if (!is_valid_ip_address(ip_address)) {
         ERRO("Invalid ip address\n");
         exit(1);
     }

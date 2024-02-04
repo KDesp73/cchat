@@ -58,6 +58,7 @@ void connect_to(const char* ip_address, int port, char* username){
                 .id = sockfd,
                 .user = username,
                 .message = buffer,
+                .status = MESSAGE,
                 .time = get_current_time()
             };
 

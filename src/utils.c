@@ -42,7 +42,7 @@ void print_args(int argc, char** argv){
     printf("\n");
 }
 
-int isValidIpAddress(char *ipAddress){
+int is_valid_ip_address(char *ipAddress){
     struct sockaddr_in sa;
     int result = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
     return result != 0;

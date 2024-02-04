@@ -2,8 +2,8 @@
 #define LOGGING_H
 #include <stdlib.h>
 
-#define CONCAT(a, b) a "" b
 
+#define CONCAT(a, b) a "" b
 #define handle_error(msg) \
     do { perror(CONCAT("[ERRO] ", msg)); exit(1); } while (0)
 
