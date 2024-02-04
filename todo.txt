@@ -1,7 +1,7 @@
 TODO: saved connections
-TODO: password
 TODO: better ui (TUI)
 TODO: save chat-log after terminating
+TODO: more commands
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: usernames
