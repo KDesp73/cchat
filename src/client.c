@@ -106,6 +106,8 @@ void connect_to(const char* ip_address, int port, char* username){
                 free(data->message);
                 free(data);
             }
+
+            fflush(stdin);
         }
     }
 }

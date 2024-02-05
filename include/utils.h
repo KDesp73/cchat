@@ -2,6 +2,8 @@
 #define UTILS_H
 #include <time.h>
 
+#define ARR_LEN(arr) (sizeof(arr) / sizeof(arr[0]))
+
 int is_empty(const char *s);
 char* pop_arg(int* argc, char** argv);
 void print_args(int argc, char** argv);
