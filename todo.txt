@@ -6,7 +6,6 @@ TODO: ban command
 TODO: mute command
 TODO: unmute command
 TODO: admin command
-TODO: update man and README
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: usernames
@@ -23,3 +22,4 @@ DONE: help command
 DONE: list command
 DONE: whisper command
 DONE: whoami command
+DONE: update man and README

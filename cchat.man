@@ -32,15 +32,15 @@ connect                             Connect to a server
 
 .SH INTERNAL COMMANDS
 
-\help or \?                         Prints list of commands
+\\help or \\?                         Prints list of commands
 
-\list                               Prints list of connected users
+\\list                               Prints list of connected users
 
-\clear                              Clears the terminal window
+\\clear                              Clears the terminal window
 
-\whoami                             Prints users username
+\\whoami                             Prints users username
 
-\whisper [username] [message]       Sends private message to user with username [username]
+\\whisper [username] [message]       Sends private message to user with username [username]
 
 
 .SH EXAMPLES
