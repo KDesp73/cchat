@@ -70,7 +70,15 @@ if [ -f "$exe" ]; then
     echo "[INFO] You may need to restart your terminal for the changes to apply"
 
 else
-    echo "[ERRO] Run \"make\" first"
-    exit 1
+    echo "$exe is not built. Building..."
+    make
+
+    if [[ $? == 0 ]]; then
+        ./install.sh
+    else
+        echo "Failed to build $exe"
+        exit 1
+    fi
 fi
 
+exit 0

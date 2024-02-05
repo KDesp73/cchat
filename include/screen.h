@@ -1,8 +1,6 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
-#include <string.h>
-#include <stdlib.h>
 #define clear() printf("\033[H\033[J")
 #define gotoxy(x,y) printf("\033[%d;%dH", (y), (x))
 #define moveup(x) printf("\033[%dA", x);

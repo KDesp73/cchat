@@ -85,7 +85,6 @@ char* read_file_line(const char* path){
 }
 
 char *random_string(size_t length) {
-
     static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";        
     char *randomString = NULL;
 
