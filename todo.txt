@@ -1,7 +1,13 @@
 TODO: saved connections
 TODO: better ui (TUI)
 TODO: save chat-log after terminating
-TODO: more commands
+TODO: whisper command
+TODO: kick command
+TODO: ban command
+TODO: mute command
+TODO: unmute command
+TODO: admin command
+TODO: whoami command
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: usernames
@@ -13,3 +19,6 @@ DONE: unique usernames
 DONE: commands using '\'
 DONE: different color for every user
 DONE: replace comma as the separator
+DONE: clear command
+DONE: help command
+DONE: list command

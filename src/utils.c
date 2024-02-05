@@ -7,9 +7,25 @@
 #include <ctype.h>
 #include <stdio.h>
 
+
+
+
+int starts_with(const char *a, const char *b) {
+   if(strncmp(a, b, strlen(b)) == 0) return 1;
+   return 0;
+}
+
 int search_int(int key, int *arr, size_t size){
     for(size_t i = 0; i < size; i++){
         if(key == arr[i]) return i;
+    }
+    return -1;
+}
+
+int search_str(const char* key, char** arr, size_t size){
+    for(size_t i = 0; i < size; i++){
+        if(arr[i] == NULL) continue;
+        if(strcmp(key, arr[i]) == 0) return i;
     }
     return -1;
 }

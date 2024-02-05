@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Iinclude
+# CFLAGS = -Wall -Wextra -Iinclude -DDEBUG
+CFLAGS = -Wall -Wextra -Iinclude
 
 SRC_DIR = src
 INCLUDE_DIR = include
@@ -37,7 +38,7 @@ compile_commands.json: $(SRC_FILES)
 	bear -- make
 
 # FOR TESTING
-serve: $(TARGET)
+serve: $(BUILD_DIR) $(TARGET)
 	./cchat serve --address 127.0.0.1 --port 9876
 
 connect: $(TARGET)

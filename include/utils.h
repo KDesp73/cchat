@@ -4,6 +4,7 @@
 
 #define ARR_LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 
+int starts_with(const char *a, const char *b);
 int is_empty(const char *s);
 char* pop_arg(int* argc, char** argv);
 void print_args(int argc, char** argv);
@@ -14,5 +15,6 @@ char* read_file_line(const char* path);
 char* random_string(size_t length);
 int is_in(char* str, char** list, int size);
 int search_int(int key, int* arr, size_t size);
+int search_str(const char* key, char** arr, size_t size);
 
 #endif // UTILS_H

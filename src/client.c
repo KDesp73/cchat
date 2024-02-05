@@ -17,6 +17,8 @@
 void connect_to(const char* ip_address, int port, char* username){
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
+    DEBU("sockfd: %d\n", sockfd);
+
     struct sockaddr_in address = {
         .sin_family = AF_INET,
         .sin_port = htons(port),

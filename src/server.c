@@ -35,8 +35,9 @@ char* colors[MAX_PENDING_CONNECTIONS + 1] = {
 char* _username = NULL;
 int _sockfd = -1;
 
+#define SERVER_NAME ((_username == NULL) ? "server" : _username)
+
 // =========== SERVER UTILS ===========
-struct Data create_data(const char* message, int status);
 void close_server(int sockfd);
 void run_command(char* command, int clientfd);
 char* color_username(const char* username, const char* color);
@@ -61,7 +62,7 @@ void *handle_stdin(void *arg) {
 
             struct Data data = {
                 .id = -1,  // Use a special ID for messages from the server
-                .user = color_username(((_username == NULL) ? "server" : _username), colors[0]),
+                .user = color_username(SERVER_NAME, colors[0]),
                 .message = buffer,
                 .status = MESSAGE,
                 .time = get_current_time()
@@ -94,13 +95,13 @@ void *handle_client(void *arg) {
     // Add the new client to the list
     if (num_clients >= MAX_PENDING_CONNECTIONS) {
         ERRO("%s\n", ERROR_MAX_CLIENTS_REACHED);
-        send(clientfd, data_to_string(create_data(ERROR_MAX_CLIENTS_REACHED, ERROR)), BUFFER_SIZE, 0);
+        send(clientfd, data_to_string(create_data(ERROR_MAX_CLIENTS_REACHED, ERROR, SERVER_NAME)), BUFFER_SIZE, 0);
 
         close(clientfd);
         pthread_exit(NULL);
     } else if(is_in(check_data->user, usernames, num_usernames)) {
         WARN("%s\n", ERROR_USERNAME_EXISTS);
-        send(clientfd, data_to_string(create_data(ERROR_USERNAME_EXISTS, WARNING)), BUFFER_SIZE, 0);
+        send(clientfd, data_to_string(create_data(ERROR_USERNAME_EXISTS, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
 
         close(clientfd);
         pthread_exit(NULL);
@@ -115,7 +116,7 @@ void *handle_client(void *arg) {
 
     char str[] = "Connected as: ";
     strcat(str, check_data->user);
-    send(clientfd, data_to_string(create_data(str, INFORMATION)), BUFFER_SIZE, 0);
+    send(clientfd, data_to_string(create_data(str, INFORMATION, SERVER_NAME)), BUFFER_SIZE, 0);
 
     while (1) {
         char buffer[BUFFER_SIZE] = {0};
@@ -246,7 +247,7 @@ void serve(const char *ip_address, int port, char* username) {
 
 void close_server(int sockfd){
     for (int i = 0; i < num_clients; ++i) {
-        send(clients[i], data_to_string(create_data("Server closed", INFORMATION)), BUFFER_SIZE, 0);
+        send(clients[i], data_to_string(create_data("Server closed", INFORMATION, SERVER_NAME)), BUFFER_SIZE, 0);
         close(clients[i]);
     }
 
@@ -255,18 +256,6 @@ void close_server(int sockfd){
     close(sockfd);
 }
 
-struct Data create_data(const char* message, int status){
-    struct Data data;
-
-    data.id = -1;
-    data.user = ((_username == NULL) ? "server" : _username);
-    data.status = status;
-    data.time = get_current_time();
-    data.message = (char*) calloc(strlen(message), sizeof(char));
-    strcpy(data.message, message);
-
-    return data;
-}
 
 #define CHECK_BUFFER(buff) \
     do {if(buff == NULL) {free(buffer); return;}} while(0);
@@ -282,11 +271,71 @@ void run_command(char* command, int fd){
         buffer = help(commands, ARR_LEN(commands));
     } else if(strcmp(command, COMMAND_CLEAR) == 0) {
         buffer = clear();
+    } else if(starts_with(command, COMMAND_WHISPER)) {
+        char* whisper_out = whisper(fd, _sockfd, command, usernames, num_usernames);
+
+        if (whisper_out == NULL) {
+            DEBU("`whisper` returned NULL\n");
+            if(fd != _sockfd)
+                send(fd, data_to_string(create_data(ERROR_INCORRECT_COMMAND, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
+            else 
+                WARN("%s\n", ERROR_INCORRECT_COMMAND);
+            return;
+        } else if(strcmp(whisper_out, ERROR_EMPTY_MESSAGE) == 0){
+            if(fd != _sockfd)
+                send(fd, data_to_string(create_data(ERROR_EMPTY_MESSAGE, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
+            else 
+                WARN("%s\n", ERROR_EMPTY_MESSAGE);
+            return;
+        } else if(strcmp(whisper_out, ERROR_USERNAME_DOES_NOT_EXIST) == 0){
+            if(fd != _sockfd)
+                send(fd, data_to_string(create_data(ERROR_USERNAME_DOES_NOT_EXIST, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
+            else 
+                WARN("%s\n", ERROR_USERNAME_DOES_NOT_EXIST);
+            return;
+        } else if(strcmp(whisper_out, ERROR_USERNAME_NOT_PROVIDED) == 0){
+            if(fd != _sockfd)
+                send(fd, data_to_string(create_data(ERROR_USERNAME_NOT_PROVIDED, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
+            else 
+                WARN("%s\n", ERROR_USERNAME_NOT_PROVIDED);
+            return;
+        } else {
+            DEBU("UNKNOWN RETURN VALUE\n");
+        }
+
+        struct Data *data = string_to_data(whisper_out);
+
+        if (data == NULL) {
+            DEBU("DATA from whisper is NULL\n");
+            free(whisper_out);
+            return;
+        }
+
+        DEBU("WHISPER: data: %s\n", data_to_string(*data));
+
+        DEBU("data->id: %d, fd: %d\n", data->id, fd);
+        if(data->id == fd) {
+            DEBU("fd: %d\n", fd);
+            if(fd != _sockfd) {
+                send(fd, data_to_string(create_data(ERROR_MESSAGING_SELF, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
+            } else {
+                WARN("%s\n", ERROR_MESSAGING_SELF);
+            } 
+
+            return;
+        }
+
+
+        if(data->id == _sockfd) print_message(data);
+        else send(data->id, data_to_string(create_data(data->message, MESSAGE, data->user)), BUFFER_SIZE, 0);
+
+        free(whisper_out);
+        return;
     } else {
         if(fd == _sockfd) {
             WARN("%s\n", ERROR_COMMAND_NOT_FOUND);
         } else {
-            send(fd, data_to_string(create_data(ERROR_COMMAND_NOT_FOUND, WARNING)), BUFFER_SIZE, 0);
+            send(fd, data_to_string(create_data(ERROR_COMMAND_NOT_FOUND, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
         }
         free(buffer);
         return;
@@ -296,7 +345,7 @@ void run_command(char* command, int fd){
     if(fd == _sockfd){
         printf("%s\n", buffer);
     } else {
-        send(fd, data_to_string(create_data(buffer, COMMAND)), BUFFER_SIZE, 0);
+        send(fd, data_to_string(create_data(buffer, COMMAND, SERVER_NAME)), BUFFER_SIZE, 0);
     }
 
     free(buffer);
