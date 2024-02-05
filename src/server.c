@@ -274,6 +274,8 @@ void run_command(char* command, int fd){
     } else if(starts_with(command, COMMAND_WHISPER)) {
         whisper(fd, _sockfd, command, usernames, num_usernames);
         return;
+    } else if(strcmp(command, COMMAND_WHOAMI) == 0) {
+        buffer = whoami(fd, _sockfd, usernames, num_usernames);
     } else {
         if(fd == _sockfd) {
             WARN("%s\n", ERROR_COMMAND_NOT_FOUND);
@@ -286,8 +288,9 @@ void run_command(char* command, int fd){
 
     CHECK_BUFFER(buffer);
     if(fd == _sockfd){
-        printf("%s\n", buffer);
+        printf("%s\n\n", buffer);
     } else {
+        strcat(buffer, "\n");
         send(fd, data_to_string(create_data(buffer, COMMAND, SERVER_NAME)), BUFFER_SIZE, 0);
     }
 

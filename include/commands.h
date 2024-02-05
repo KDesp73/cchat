@@ -5,7 +5,6 @@
 
 /* COMMAND IDEAS TO IMPLEMENT
  *  Global
- *  \whoami: prints user's username
  *
  *  Server only
  *  \admin [username]: Make user admin (can use server-only commands)
@@ -15,22 +14,25 @@
  *  \unmute [username]: Unmute a previously muted user.
  */
 
-#define COMMAND_LIST "list"
 #define COMMAND_HELP "help"
+#define COMMAND_LIST "list"
 #define COMMAND_HELP_SHORT "?"
 #define COMMAND_CLEAR "clear"
 #define COMMAND_WHISPER "whisper"
+#define COMMAND_WHOAMI "whoami"
 
 static char* command_help[] = {
-    COMMAND_LIST ": lists all users",
-    COMMAND_HELP " or " COMMAND_HELP_SHORT ": prints this list",
-    COMMAND_CLEAR ": clears the screen ",
-    COMMAND_WHISPER ": \\whisper [username] [message] - send private messages",
+    "\\" COMMAND_HELP " or \\" COMMAND_HELP_SHORT " - prints this list",
+    "\\" COMMAND_LIST " - lists all users",
+    "\\" COMMAND_CLEAR " - clears the screen ",
+    "\\" COMMAND_WHISPER " [username] [message] - send private messages",
+    "\\" COMMAND_WHOAMI " - prints your username",
 };
 
 char* list(char** usernames, size_t num_usernames);
 char* help(char** commands, size_t size);
 char* clear();
 void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t num_usernames);
+char* whoami(int fd, int sockfd, char**usernames, size_t num_usernames);
 
 #endif // COMMANDS_H

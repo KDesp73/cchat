@@ -15,7 +15,7 @@ char* return_arr(char** arr, size_t size){
     for(size_t i = 0; i < size; ++i){
         if(arr[i] == NULL) continue;
         strcat(buffer, arr[i]);
-        strcat(buffer, "\n");
+        if(i != size - 1) strcat(buffer, "\n");
     }
 
     return buffer;
@@ -117,5 +117,14 @@ void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t nu
     else send(data.id, data_to_string(create_data(data.message, MESSAGE, data.user)), BUFFER_SIZE, 0);
 
     return;
+}
+
+char* whoami(int fd, int sockfd, char**usernames, size_t num_usernames){
+    if(fd < sockfd) return NULL;
+
+    char* buff = (char*) malloc(sizeof(usernames[fd - sockfd]));
+
+    strcpy(buff, usernames[fd - sockfd]);
+    return buff;
 }
 
