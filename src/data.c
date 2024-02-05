@@ -61,7 +61,7 @@ struct Data *string_to_data(char *str) {
     // Parse and set the id
     char *token = strtok(str, "|");
     if (!token) {
-        fprintf(stderr, "Invalid input string (id).\n");
+        // fprintf(stderr, "Invalid input string (id).\n");
         free(data);
         return NULL;
     }
@@ -70,7 +70,7 @@ struct Data *string_to_data(char *str) {
     // Parse and set the user
     token = strtok(NULL, "|");
     if (!token) {
-        fprintf(stderr, "Invalid input string (user).\n");
+        // fprintf(stderr, "Invalid input string (user).\n");
         free(data);
         return NULL;
     }
@@ -79,7 +79,7 @@ struct Data *string_to_data(char *str) {
     // Parse and set the message
     token = strtok(NULL, "|");
     if (!token) {
-        fprintf(stderr, "Invalid input string (message).\n");
+        // fprintf(stderr, "Invalid input string (message).\n");
         free(data->user);
         free(data);
         return NULL;
@@ -89,7 +89,7 @@ struct Data *string_to_data(char *str) {
     // Parse and set the error flag
     token = strtok(NULL, "|");
     if (!token) {
-        fprintf(stderr, "Invalid input string (is_error).\n");
+        // fprintf(stderr, "Invalid input string (is_error).\n");
         free(data->user);
         free(data->message);
         free(data);
@@ -100,7 +100,7 @@ struct Data *string_to_data(char *str) {
     // Parse and set the time
     token = strtok(NULL, "|");
     if (!token) {
-        fprintf(stderr, "Invalid input string (time).\n");
+        // fprintf(stderr, "Invalid input string (time).\n");
         free(data->user);
         free(data->message);
         free(data);

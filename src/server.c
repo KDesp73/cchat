@@ -131,9 +131,10 @@ void *handle_client(void *arg) {
         if (data) {
             // Check if message is command
             if(data->message[0] == '\\') {
-                char* command = "list"; 
+                char* command = data->message + 1; 
                 DEBU("Command: %s\n", command);
                 run_command(command, clientfd);
+                continue;
             } else {
                 
                 strcpy(data->user, color_username(data->user, colors[search_int(clientfd, clients, num_clients) + 1]));
