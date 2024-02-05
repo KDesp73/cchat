@@ -12,6 +12,7 @@
  *  \ban [username]: Ban a user from the chat.
  *  \mute [username]: Mute a user in the chat.
  *  \unmute [username]: Unmute a previously muted user.
+ *  \admin [username]: Give user server priviliges
  */
 
 #define COMMAND_HELP "help"
