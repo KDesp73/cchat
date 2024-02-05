@@ -21,16 +21,16 @@
 #define COMMAND_CLEAR "clear"
 #define COMMAND_WHISPER "whisper"
 
-static char* commands[] = {
-    COMMAND_LIST,
-    COMMAND_HELP " or " COMMAND_HELP_SHORT,
-    COMMAND_CLEAR,
-    COMMAND_WHISPER,
+static char* command_help[] = {
+    COMMAND_LIST ": lists all users",
+    COMMAND_HELP " or " COMMAND_HELP_SHORT ": prints this list",
+    COMMAND_CLEAR ": clears the screen ",
+    COMMAND_WHISPER ": \\whisper [username] [message] - send private messages",
 };
 
 char* list(char** usernames, size_t num_usernames);
 char* help(char** commands, size_t size);
 char* clear();
-char* whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t num_usernames);
+void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t num_usernames);
 
 #endif // COMMANDS_H

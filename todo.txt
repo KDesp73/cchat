@@ -1,7 +1,6 @@
 TODO: saved connections
 TODO: better ui (TUI)
 TODO: save chat-log after terminating
-TODO: whisper command
 TODO: kick command
 TODO: ban command
 TODO: mute command
@@ -22,3 +21,4 @@ DONE: replace comma as the separator
 DONE: clear command
 DONE: help command
 DONE: list command
+DONE: whisper command

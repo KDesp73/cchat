@@ -2,11 +2,13 @@
 #include "data.h"
 #include "errors.h"
 #include "logging.h"
+#include "config.h"
 #include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+
 
 char* return_arr(char** arr, size_t size){
     char* buffer = (char*) malloc(size * 100 * sizeof(char));
@@ -35,19 +37,19 @@ char* clear(){
 }
 
 
-char* whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t num_usernames){
-    DEBU("WHISPER: command: %s\n", buffer); 
-
+void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t num_usernames){
     struct Data data = {};
 
     // Extract the command
     char* token = strtok(buffer, " ");
     if (token == NULL) {
-        DEBU("Returned NULL at command\n");
-        return NULL;
+        DEBU("`whisper` returned NULL\n");
+        if(clientfd != sockfd)
+            send(clientfd, data_to_string(create_data(ERROR_INCORRECT_COMMAND, WARNING, usernames[0])), BUFFER_SIZE, 0);
+        else 
+            WARN("%s\n", ERROR_INCORRECT_COMMAND);
+        return;
     }
-
-    DEBU("WHISPER: command_name: %s\n", token);
 
     // Set the message status
     data.status = MESSAGE;
@@ -63,41 +65,57 @@ char* whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t n
     // Extract the target username
     token = strtok(NULL, " ");
     if (token == NULL) {
-        DEBU("Returned NULL at username\n");
-        return ERROR_USERNAME_NOT_PROVIDED;
+        if(clientfd != sockfd)
+            send(clientfd, data_to_string(create_data(ERROR_USERNAME_NOT_PROVIDED, WARNING, usernames[0])), BUFFER_SIZE, 0);
+        else 
+            WARN("%s\n", ERROR_USERNAME_NOT_PROVIDED);
+        return;
     }
-
-    DEBU("WHISPER: username: %s\n", token);
 
     int username_indx = search_str(token, usernames, num_usernames);
     if (username_indx >= 0) {
         data.id = sockfd + username_indx; // we send the message to him
     } else {
-        DEBU("Returned NULL at username search\n");
-        return ERROR_USERNAME_DOES_NOT_EXIST;
+        if(clientfd != sockfd)
+            send(clientfd, data_to_string(create_data(ERROR_USERNAME_DOES_NOT_EXIST, WARNING, usernames[0])), BUFFER_SIZE, 0);
+        else 
+            WARN("%s\n", ERROR_USERNAME_DOES_NOT_EXIST);
+        return;
     }
 
-    // Extract the message
     token = strtok(NULL, "");
     if (token == NULL || is_empty(token)) {
-        DEBU("Returned NULL at message\n");
-        return ERROR_EMPTY_MESSAGE;
+        if(clientfd != sockfd)
+            send(clientfd, data_to_string(create_data(ERROR_EMPTY_MESSAGE, WARNING, usernames[0])), BUFFER_SIZE, 0);
+        else 
+            WARN("%s\n", ERROR_EMPTY_MESSAGE);
+        return;
     }
 
-    DEBU("WHISPER: message: %s\n", token);
     data.time = get_current_time();
 
-    // Copy the message with bounds checking
     data.message = (char*) malloc(sizeof(token));
     strncpy(data.message, token, sizeof(data.message) - 1);
     data.message[sizeof(data.message) - 1] = '\0';  // Ensure null-termination
 
-    // Check if data_to_string returns NULL
-    char* result = data_to_string(data);
+    DEBU("WHISPER: data: %s\n", data_to_string(data));
 
-    DEBU("WHISPER: data_to_string: %s\n", data_to_string(data));
+    DEBU("data->id: %d, fd: %d\n", data->id, fd);
+    if(data.id == clientfd) {
+        DEBU("fd: %d\n", fd);
+        if(clientfd != sockfd) {
+            send(clientfd, data_to_string(create_data(ERROR_MESSAGING_SELF, WARNING, usernames[0])), BUFFER_SIZE, 0);
+        } else {
+            WARN("%s\n", ERROR_MESSAGING_SELF);
+        } 
+
+        return;
+    }
 
 
-    return result;
+    if(data.id == sockfd) print_message(&data);
+    else send(data.id, data_to_string(create_data(data.message, MESSAGE, data.user)), BUFFER_SIZE, 0);
+
+    return;
 }
 

@@ -268,68 +268,11 @@ void run_command(char* command, int fd){
     if(strcmp(command, COMMAND_LIST) == 0){
         buffer = list(usernames, num_usernames);
     } else if(strcmp(command, COMMAND_HELP) == 0 || strcmp(command, COMMAND_HELP_SHORT) == 0){
-        buffer = help(commands, ARR_LEN(commands));
+        buffer = help(command_help, ARR_LEN(command_help));
     } else if(strcmp(command, COMMAND_CLEAR) == 0) {
         buffer = clear();
     } else if(starts_with(command, COMMAND_WHISPER)) {
-        char* whisper_out = whisper(fd, _sockfd, command, usernames, num_usernames);
-
-        if (whisper_out == NULL) {
-            DEBU("`whisper` returned NULL\n");
-            if(fd != _sockfd)
-                send(fd, data_to_string(create_data(ERROR_INCORRECT_COMMAND, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
-            else 
-                WARN("%s\n", ERROR_INCORRECT_COMMAND);
-            return;
-        } else if(strcmp(whisper_out, ERROR_EMPTY_MESSAGE) == 0){
-            if(fd != _sockfd)
-                send(fd, data_to_string(create_data(ERROR_EMPTY_MESSAGE, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
-            else 
-                WARN("%s\n", ERROR_EMPTY_MESSAGE);
-            return;
-        } else if(strcmp(whisper_out, ERROR_USERNAME_DOES_NOT_EXIST) == 0){
-            if(fd != _sockfd)
-                send(fd, data_to_string(create_data(ERROR_USERNAME_DOES_NOT_EXIST, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
-            else 
-                WARN("%s\n", ERROR_USERNAME_DOES_NOT_EXIST);
-            return;
-        } else if(strcmp(whisper_out, ERROR_USERNAME_NOT_PROVIDED) == 0){
-            if(fd != _sockfd)
-                send(fd, data_to_string(create_data(ERROR_USERNAME_NOT_PROVIDED, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
-            else 
-                WARN("%s\n", ERROR_USERNAME_NOT_PROVIDED);
-            return;
-        } else {
-            DEBU("UNKNOWN RETURN VALUE\n");
-        }
-
-        struct Data *data = string_to_data(whisper_out);
-
-        if (data == NULL) {
-            DEBU("DATA from whisper is NULL\n");
-            free(whisper_out);
-            return;
-        }
-
-        DEBU("WHISPER: data: %s\n", data_to_string(*data));
-
-        DEBU("data->id: %d, fd: %d\n", data->id, fd);
-        if(data->id == fd) {
-            DEBU("fd: %d\n", fd);
-            if(fd != _sockfd) {
-                send(fd, data_to_string(create_data(ERROR_MESSAGING_SELF, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
-            } else {
-                WARN("%s\n", ERROR_MESSAGING_SELF);
-            } 
-
-            return;
-        }
-
-
-        if(data->id == _sockfd) print_message(data);
-        else send(data->id, data_to_string(create_data(data->message, MESSAGE, data->user)), BUFFER_SIZE, 0);
-
-        free(whisper_out);
+        whisper(fd, _sockfd, command, usernames, num_usernames);
         return;
     } else {
         if(fd == _sockfd) {
