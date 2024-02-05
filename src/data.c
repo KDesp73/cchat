@@ -5,6 +5,20 @@
 #include "screen.h"
 #include "utils.h"
 
+
+struct Data create_data(const char* message, int status, char* _username){
+    struct Data data;
+
+    data.id = -1;
+    data.user = ((_username == NULL) ? "server" : _username);
+    data.status = status;
+    data.time = get_current_time();
+    data.message = (char*) calloc(strlen(message), sizeof(char));
+    strcpy(data.message, message);
+
+    return data;
+}
+
 void print_data(struct Data data){
     printf("Data {\n");
     printf("\tid: %d\n", data.id);

@@ -1,6 +1,6 @@
 .\" Manpage for cchat.
 .\" Contact despoinidisk@gmail.com to correct errors or typos.
-.TH man 8 "01 Feb 2024" "1.0.2" "cchat man page"
+.TH man 8 "01 Feb 2024" "1.0.6" "cchat man page"
 
 .SH NAME
 
@@ -16,19 +16,32 @@ cchat is a simple chat application for the terminal
 
 .SH COMMANDS
 
-serve                Start the server
+serve                               Start the server
 
-connect              Connect to a server
+connect                             Connect to a server
 
 .SH OPTIONS
 
--a --address         Specify the ip address to serve or connect to
+-a --address                        Specify the ip address to serve or connect to
 
--p --port            Specify the port
+-p --port                           Specify the port
 
--v --version         Prints the version of the executable
+-v --version                        Prints the version of the executable
 
--u --username        Specify your username
+-u --username                       Specify your username
+
+.SH INTERNAL COMMANDS
+
+\help or \?                         Prints list of commands
+
+\list                               Prints list of connected users
+
+\clear                              Clears the terminal window
+
+\whoami                             Prints users username
+
+\whisper [username] [message]       Sends private message to user with username [username]
+
 
 .SH EXAMPLES
 

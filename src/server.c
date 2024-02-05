@@ -10,16 +10,16 @@
 #include <unistd.h>
 
 #include "server.h"
-#include "commands.h"
 #include "screen.h"
 #include "data.h"
 #include "errors.h"
 #include "logging.h"
 #include "utils.h"
 #include "config.h"
+#include "commands.h"
 
 int clients[MAX_PENDING_CONNECTIONS];
-char* usernames[MAX_PENDING_CONNECTIONS+2];
+char* usernames[MAX_PENDING_CONNECTIONS+1];
 int num_clients = 0;
 int num_usernames = 0;
 
@@ -35,8 +35,9 @@ char* colors[MAX_PENDING_CONNECTIONS + 1] = {
 char* _username = NULL;
 int _sockfd = -1;
 
+#define SERVER_NAME ((_username == NULL) ? "server" : _username)
+
 // =========== SERVER UTILS ===========
-struct Data create_data(const char* message, int status);
 void close_server(int sockfd);
 void run_command(char* command, int clientfd);
 char* color_username(const char* username, const char* color);
@@ -61,7 +62,7 @@ void *handle_stdin(void *arg) {
 
             struct Data data = {
                 .id = -1,  // Use a special ID for messages from the server
-                .user = color_username(((_username == NULL) ? "server" : _username), colors[0]),
+                .user = color_username(SERVER_NAME, colors[0]),
                 .message = buffer,
                 .status = MESSAGE,
                 .time = get_current_time()
@@ -71,6 +72,7 @@ void *handle_stdin(void *arg) {
                 send(clients[i], data_to_string(data), BUFFER_SIZE - 1, 0);
             }
         }
+        fflush(stdin);
     }
 
     pthread_exit(NULL);
@@ -79,6 +81,7 @@ void *handle_stdin(void *arg) {
 void *handle_client(void *arg) {
     int clientfd = *((int *)arg);
     free(arg);
+    DEBU("clientfd: %d\n", clientfd);
 
     // Get init data from client
     char check_buf[BUFFER_SIZE];
@@ -92,13 +95,13 @@ void *handle_client(void *arg) {
     // Add the new client to the list
     if (num_clients >= MAX_PENDING_CONNECTIONS) {
         ERRO("%s\n", ERROR_MAX_CLIENTS_REACHED);
-        send(clientfd, data_to_string(create_data(ERROR_MAX_CLIENTS_REACHED, ERROR)), BUFFER_SIZE, 0);
+        send(clientfd, data_to_string(create_data(ERROR_MAX_CLIENTS_REACHED, ERROR, SERVER_NAME)), BUFFER_SIZE, 0);
 
         close(clientfd);
         pthread_exit(NULL);
     } else if(is_in(check_data->user, usernames, num_usernames)) {
         WARN("%s\n", ERROR_USERNAME_EXISTS);
-        send(clientfd, data_to_string(create_data(ERROR_USERNAME_EXISTS, WARNING)), BUFFER_SIZE, 0);
+        send(clientfd, data_to_string(create_data(ERROR_USERNAME_EXISTS, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
 
         close(clientfd);
         pthread_exit(NULL);
@@ -113,7 +116,7 @@ void *handle_client(void *arg) {
 
     char str[] = "Connected as: ";
     strcat(str, check_data->user);
-    send(clientfd, data_to_string(create_data(str, INFORMATION)), BUFFER_SIZE, 0);
+    send(clientfd, data_to_string(create_data(str, INFORMATION, SERVER_NAME)), BUFFER_SIZE, 0);
 
     while (1) {
         char buffer[BUFFER_SIZE] = {0};
@@ -159,7 +162,7 @@ void *handle_client(void *arg) {
         if (clients[i] == clientfd) {
             for (int j = i; j < num_clients - 1; ++j) {
                 clients[j] = clients[j + 1];
-                usernames[j] = usernames[j + 1];
+                usernames[j + 1] = usernames[j + 2]; // + 1 Because of server's username
             }
             num_clients--;
             num_usernames--;
@@ -189,8 +192,10 @@ void serve(const char *ip_address, int port, char* username) {
     // Add server's username in the list of usernames
     if(username != NULL) usernames[num_usernames++] = username;
     else usernames[num_usernames++] = "server";
+    DEBU("server username: %s\n", _username);
 
     _sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    DEBU("sockfd: %d\n", _sockfd);
 
     struct sockaddr_in address = {
         .sin_family = AF_INET,
@@ -242,7 +247,7 @@ void serve(const char *ip_address, int port, char* username) {
 
 void close_server(int sockfd){
     for (int i = 0; i < num_clients; ++i) {
-        send(clients[i], data_to_string(create_data("Server closed", INFORMATION)), BUFFER_SIZE, 0);
+        send(clients[i], data_to_string(create_data("Server closed", INFORMATION, SERVER_NAME)), BUFFER_SIZE, 0);
         close(clients[i]);
     }
 
@@ -251,46 +256,48 @@ void close_server(int sockfd){
     close(sockfd);
 }
 
-struct Data create_data(const char* message, int status){
-    struct Data data;
 
-    data.id = -1;
-    data.user = ((_username == NULL) ? "server" : _username);
-    data.status = status;
-    data.time = get_current_time();
-    data.message = (char*) calloc(strlen(message), sizeof(char));
-    strcpy(data.message, message);
-
-    return data;
-}
+#define CHECK_BUFFER(buff) \
+    do {if(buff == NULL) {free(buffer); return;}} while(0);
 
 void run_command(char* command, int fd){
     if(command == NULL) return;
 
-    char* buffer = (char*) calloc(num_usernames * BUFFER_SIZE, sizeof(char));
-    strcpy(buffer, "");
+    char* buffer = NULL;
 
     if(strcmp(command, COMMAND_LIST) == 0){
-        for(size_t i = 0; i < num_usernames; ++i){
-            if(usernames[i] == NULL) continue;
-            strcat(buffer, usernames[i]);
-            strcat(buffer, "\n");
-        }
-        if(fd == _sockfd){
-            printf("%s\n", buffer);
-        } else {
-            send(fd, data_to_string(create_data(buffer, COMMAND)), BUFFER_SIZE, 0);
-        }
+        buffer = list(usernames, num_usernames);
+    } else if(strcmp(command, COMMAND_HELP) == 0 || strcmp(command, COMMAND_HELP_SHORT) == 0){
+        buffer = help(command_help, ARR_LEN(command_help));
+    } else if(strcmp(command, COMMAND_CLEAR) == 0) {
+        buffer = clear();
+    } else if(starts_with(command, COMMAND_WHISPER)) {
+        whisper(fd, _sockfd, command, usernames, num_usernames);
+        return;
+    } else if(strcmp(command, COMMAND_WHOAMI) == 0) {
+        buffer = whoami(fd, _sockfd, usernames, num_usernames);
     } else {
         if(fd == _sockfd) {
             WARN("%s\n", ERROR_COMMAND_NOT_FOUND);
         } else {
-            send(fd, data_to_string(create_data(ERROR_COMMAND_NOT_FOUND, WARNING)), BUFFER_SIZE, 0);
+            send(fd, data_to_string(create_data(ERROR_COMMAND_NOT_FOUND, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
         }
+        free(buffer);
+        return;
     } 
+
+    CHECK_BUFFER(buffer);
+    if(fd == _sockfd){
+        printf("%s\n\n", buffer);
+    } else {
+        strcat(buffer, "\n");
+        send(fd, data_to_string(create_data(buffer, COMMAND, SERVER_NAME)), BUFFER_SIZE, 0);
+    }
 
     free(buffer);
 }
+
+
 char* color_username(const char* username, const char* color) {
     size_t colored_username_size = strlen(color) + strlen(username) + strlen(reset) + 1;
 

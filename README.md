@@ -44,6 +44,16 @@ echo "[username]" > username
 - `-u`, `--username`: Specify your username. Overrides the file username
 - `-v`, `--version`: Print the program's version
 
+## Internal commands
+
+- `\help` or `\?`: Prints list of commands
+- `\list`: Prints list of connected users
+- `\clear`: Clears the terminal window
+- `\whoami`: Prints users username
+- `\whisper [username] [message]`: Sends private message to user with username `[username]`
+
+> More to be be implemented soon!
+
 ## License
 
 [GNU](./LICENSE)
