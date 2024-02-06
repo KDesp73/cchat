@@ -92,17 +92,14 @@ void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t nu
         return;
     }
 
+
+    data.message = (char*) malloc(BUFFER_SIZE);
+    strcpy(data.message, token);
+
     data.time = get_current_time();
-
-    data.message = (char*) malloc(sizeof(token));
-    strncpy(data.message, token, sizeof(data.message) - 1);
-    data.message[sizeof(data.message) - 1] = '\0';  // Ensure null-termination
-
     DEBU("WHISPER: data: %s\n", data_to_string(data));
-
-    DEBU("data->id: %d, fd: %d\n", data->id, fd);
     if(data.id == clientfd) {
-        DEBU("fd: %d\n", fd);
+        DEBU("fd: %d\n", clientfd);
         if(clientfd != sockfd) {
             send(clientfd, data_to_string(create_data(ERROR_MESSAGING_SELF, WARNING, usernames[0])), BUFFER_SIZE, 0);
         } else {
