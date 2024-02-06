@@ -6,6 +6,7 @@ TODO: ban command
 TODO: mute command
 TODO: unmute command
 TODO: admin command
+TODO: unban command
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: usernames

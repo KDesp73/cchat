@@ -38,7 +38,7 @@ char* clear(){
 
 
 void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t num_usernames){
-    struct Data data = {};
+    struct Data *data = (struct Data*) malloc(sizeof(struct Data));
 
     // Extract the command
     char* token = strtok(buffer, " ");
@@ -48,19 +48,21 @@ void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t nu
             send(clientfd, data_to_string(create_data(ERROR_INCORRECT_COMMAND, WARNING, usernames[0])), BUFFER_SIZE, 0);
         else 
             WARN("%s\n", ERROR_INCORRECT_COMMAND);
+
+
+        free(data);
         return;
     }
 
     // Set the message status
-    data.status = MESSAGE;
-
+    data->status = MESSAGE;
 
     // Set the user based on clientfd
     //
     //data.user == the one who sends the message
-    data.user = (char*) malloc(sizeof(usernames[clientfd - sockfd]));
-    strncpy(data.user, usernames[clientfd - sockfd], sizeof(usernames[clientfd - sockfd]) - 1);
-    data.user[sizeof(data.user) - 1] = '\0';  // Ensure null-termination
+    data->user = (char*) malloc(sizeof(usernames[clientfd - sockfd]));
+    strcpy(data->user, usernames[clientfd - sockfd]);
+    
 
     // Extract the target username
     token = strtok(NULL, " ");
@@ -69,19 +71,29 @@ void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t nu
             send(clientfd, data_to_string(create_data(ERROR_USERNAME_NOT_PROVIDED, WARNING, usernames[0])), BUFFER_SIZE, 0);
         else 
             WARN("%s\n", ERROR_USERNAME_NOT_PROVIDED);
+
+
+        free(data->user);
+        free(data);
         return;
     }
 
+    DEBU("username token: %s\n", token);
     int username_indx = search_str(token, usernames, num_usernames);
     if (username_indx >= 0) {
-        data.id = sockfd + username_indx; // we send the message to him
+        data->id = sockfd + username_indx; // we send the message to him
     } else {
         if(clientfd != sockfd)
             send(clientfd, data_to_string(create_data(ERROR_USERNAME_DOES_NOT_EXIST, WARNING, usernames[0])), BUFFER_SIZE, 0);
         else 
             WARN("%s\n", ERROR_USERNAME_DOES_NOT_EXIST);
+
+
+        free(data->user);
+        free(data);
         return;
     }
+
 
     token = strtok(NULL, "");
     if (token == NULL || is_empty(token)) {
@@ -89,16 +101,21 @@ void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t nu
             send(clientfd, data_to_string(create_data(ERROR_EMPTY_MESSAGE, WARNING, usernames[0])), BUFFER_SIZE, 0);
         else 
             WARN("%s\n", ERROR_EMPTY_MESSAGE);
+
+
+        free(data->message);
+        free(data->user);
+        free(data);
         return;
     }
 
 
-    data.message = (char*) malloc(BUFFER_SIZE);
-    strcpy(data.message, token);
+    data->message = (char*) malloc(BUFFER_SIZE);
+    strcpy(data->message, token);
 
-    data.time = get_current_time();
-    DEBU("WHISPER: data: %s\n", data_to_string(data));
-    if(data.id == clientfd) {
+    data->time = get_current_time();
+    DEBU("WHISPER: data: %s\n", data_to_string(*data));
+    if(data->id == clientfd) {
         DEBU("fd: %d\n", clientfd);
         if(clientfd != sockfd) {
             send(clientfd, data_to_string(create_data(ERROR_MESSAGING_SELF, WARNING, usernames[0])), BUFFER_SIZE, 0);
@@ -106,13 +123,19 @@ void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t nu
             WARN("%s\n", ERROR_MESSAGING_SELF);
         } 
 
+        free(data->message);
+        free(data->user);
+        free(data);
         return;
     }
 
 
-    if(data.id == sockfd) print_message(&data);
-    else send(data.id, data_to_string(create_data(data.message, MESSAGE, data.user)), BUFFER_SIZE, 0);
+    if(data->id == sockfd) print_message(data);
+    else send(data->id, data_to_string(create_data(data->message, MESSAGE, data->user)), BUFFER_SIZE, 0);
 
+    free(data->message);
+    free(data->user);
+    free(data);
     return;
 }
 
