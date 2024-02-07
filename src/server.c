@@ -151,8 +151,8 @@ void *handle_client(void *arg) {
                 }
             }
 
-            free(data->user);
-            free(data->message);
+            if(data->user != NULL) free(data->user);
+            // if(data->message != NULL) free(data->message);
             free(data);
         }
     }
@@ -272,10 +272,10 @@ void run_command(char* command, int fd){
     } else if(strcmp(command, COMMAND_CLEAR) == 0) {
         buffer = clear();
     } else if(starts_with(command, COMMAND_WHISPER)) {
-        whisper(fd, _sockfd, command, usernames, num_usernames);
+        whisper(fd, _sockfd, command, clients, num_clients, usernames, num_usernames);
         return;
     } else if(strcmp(command, COMMAND_WHOAMI) == 0) {
-        buffer = whoami(fd, _sockfd, usernames, num_usernames);
+        buffer = whoami(fd, _sockfd, clients, num_clients, usernames, num_usernames);
     } else {
         if(fd == _sockfd) {
             WARN("%s\n", ERROR_COMMAND_NOT_FOUND);

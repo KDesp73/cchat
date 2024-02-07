@@ -14,9 +14,10 @@
 #include "logging.h"
 #include "client.h"
 
+
 void check_username(char** username) {
     if (*username == NULL) {
-        *username = (char *)calloc(strlen("user#") + 6, sizeof(char));
+        *username = (char *)calloc(strlen("user#") + 5, sizeof(char));
         WARN("Username not found\n");
         strcpy(*username, "user#");
         strcat(*username, random_string(6));
@@ -106,6 +107,7 @@ int main(int argc, char **argv) {
     }
 
     DEBU("username_path: %s\n", username_path);
+    DEBU("sizeof(arg_username) = %zu\n", sizeof(arg_username));
 
     check_address_and_port(ip_address, port);
 

@@ -1,6 +1,6 @@
 CC = gcc
-# CFLAGS = -Wall -Wextra -Iinclude -DDEBUG
-CFLAGS = -Wall -Wextra -Iinclude
+CFLAGS = -Wall -Wextra -Iinclude -g -DDEBUG -fsanitize=leak
+# CFLAGS = -Wall -Wextra -Iinclude
 
 SRC_DIR = src
 INCLUDE_DIR = include

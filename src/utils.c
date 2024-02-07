@@ -86,10 +86,10 @@ char* expand_time(time_t time){
 
 char* read_file_line(const char* path){
     FILE* fptr = fopen(path, "r");
-    char* buffer = (char*) calloc(100, sizeof(char));
+    char* buffer = (char*) calloc(256, sizeof(char));
 
     if(fptr){
-        fgets(buffer, 100, fptr);
+        fgets(buffer, 256, fptr);
         fclose(fptr);
     } else return NULL;
 

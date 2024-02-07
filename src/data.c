@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "data.h"
+#include "config.h"
 #include "screen.h"
 #include "utils.h"
 
@@ -42,7 +43,7 @@ char* data_to_string(struct Data data) {
     size_t len = snprintf(NULL, 0, formatting, data.id, data.user, data.message, data.status, data.time);
 
     // Allocate memory
-    char *datastr = malloc(sizeof *datastr * (len + 1)); // +1 for null terminator
+    char *datastr = (char*) malloc(sizeof * datastr * (len + 1)); // +1 for null terminator
     if (!datastr) {
         fprintf(stderr, "%s() error: virtual memory allocation failed.\n", __func__);
         return NULL; // Return NULL on allocation failure
@@ -64,7 +65,7 @@ struct Data *string_to_data(char *str) {
         return NULL;
     }
 
-    struct Data *data = (struct Data *)malloc(sizeof(struct Data));
+    struct Data *data = (struct Data *) malloc(sizeof(struct Data));
 
     if (!data) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -105,7 +106,7 @@ struct Data *string_to_data(char *str) {
     if (!token) {
         // fprintf(stderr, "Invalid input string (is_error).\n");
         free(data->user);
-        free(data->message);
+        // free(data->message);
         free(data);
         return NULL;
     }
@@ -116,7 +117,7 @@ struct Data *string_to_data(char *str) {
     if (!token) {
         // fprintf(stderr, "Invalid input string (time).\n");
         free(data->user);
-        free(data->message);
+        // free(data->message);
         free(data);
         return NULL;
     }

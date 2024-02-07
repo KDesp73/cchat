@@ -11,7 +11,7 @@
 
 
 char* return_arr(char** arr, size_t size){
-    char* buffer = (char*) malloc(size * 100 * sizeof(char));
+    char* buffer = (char*) malloc(size * 256 * sizeof(char));
     for(size_t i = 0; i < size; ++i){
         if(arr[i] == NULL) continue;
         strcat(buffer, arr[i]);
@@ -37,7 +37,7 @@ char* clear(){
 }
 
 
-void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t num_usernames){
+void whisper(int clientfd, int sockfd, char* buffer, int* clients, size_t num_clients, char** usernames, size_t num_usernames){
     struct Data *data = (struct Data*) malloc(sizeof(struct Data));
 
     // Extract the command
@@ -60,7 +60,9 @@ void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t nu
     // Set the user based on clientfd
     //
     //data.user == the one who sends the message
-    data->user = (char*) malloc(sizeof(usernames[clientfd - sockfd]));
+
+    int client_indx = search_int(clientfd, clients, num_clients);
+    data->user = (char*) malloc(sizeof(usernames[client_indx + 1]));
     strcpy(data->user, usernames[clientfd - sockfd]);
     
 
@@ -139,12 +141,15 @@ void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t nu
     return;
 }
 
-char* whoami(int fd, int sockfd, char**usernames, size_t num_usernames){
+char* whoami(int fd, int sockfd, int* clients, size_t num_clients, char**usernames, size_t num_usernames){
     if(fd < sockfd) return NULL;
 
-    char* buff = (char*) malloc(sizeof(usernames[fd - sockfd]));
+    int client_indx = search_int(fd, clients, num_clients);
 
-    strcpy(buff, usernames[fd - sockfd]);
+    char* buff = (char*) malloc(256);
+    buff[256 - 1] = '\0';
+
+    strcpy(buff, usernames[client_indx + 1]);
     return buff;
 }
 

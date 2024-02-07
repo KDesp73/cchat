@@ -7,6 +7,14 @@ TODO: mute command
 TODO: unmute command
 TODO: admin command
 TODO: unban command
+TODO: fix username buffer size
+TODO: dont send ansi codes
+TODO: memory leaks
+TODO: create_data memory leaks
+TODO: run_command memory leaks
+TODO: send emojis with :emoji:
+TODO: check username length
+TODO: synchronize threads
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: usernames
@@ -24,3 +32,4 @@ DONE: list command
 DONE: whisper command
 DONE: whoami command
 DONE: update man and README
+DONE: whoami doesn't print sometimes
