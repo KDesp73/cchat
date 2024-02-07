@@ -107,7 +107,8 @@ int main(int argc, char **argv) {
     }
 
     DEBU("username_path: %s\n", username_path);
-    DEBU("sizeof(arg_username) = %zu\n", sizeof(arg_username));
+    DEBU("arg_username: %s\n", arg_username);
+    DEBU("strlen(arg_username) = %zu\n", strlen(arg_username));
 
     check_address_and_port(ip_address, port);
 
