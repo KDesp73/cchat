@@ -8,12 +8,6 @@
 #include <stdio.h>
 
 
-const char* ansi[] = {
-    "^[[A",
-    "^[[B",
-    "^[[C",
-    "^[[D",
-};
 int starts_with_escape_sequence(const char *str) {
     if (str == NULL || strlen(str) < 1 || str[0] != '\033') // '\033' represents octal escape sequence for ASCII escape character
         return 0;
@@ -23,7 +17,6 @@ int starts_with_escape_sequence(const char *str) {
 
 int is_ansi(const char* str){
     if(starts_with_escape_sequence(str)) return 1;
-    if(is_in(str, ansi, 4)) return 1;
     if (str == NULL || strlen(str) < 2 || str[0] != '\x1B' || str[1] != '[')
         return 0;
 
