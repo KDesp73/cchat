@@ -8,7 +8,32 @@
 #include <stdio.h>
 
 
+const char* ansi[] = {
+    "^[[A",
+    "^[[B",
+    "^[[C",
+    "^[[D",
+};
+int starts_with_escape_sequence(const char *str) {
+    if (str == NULL || strlen(str) < 1 || str[0] != '\033') // '\033' represents octal escape sequence for ASCII escape character
+        return 0;
 
+    return 1;
+}
+
+int is_ansi(const char* str){
+    if(starts_with_escape_sequence(str)) return 1;
+    if(is_in(str, ansi, 4)) return 1;
+    if (str == NULL || strlen(str) < 2 || str[0] != '\x1B' || str[1] != '[')
+        return 0;
+
+    int len = strlen(str);
+    if (str[len - 1] < 'A' || (str[len - 1] > 'Z' && str[len - 1] < 'a') || str[len - 1] > 'z')
+        return 0;
+
+
+    return 1;
+}
 
 int starts_with(const char *a, const char *b) {
    if(strncmp(a, b, strlen(b)) == 0) return 1;
@@ -30,7 +55,7 @@ int search_str(const char* key, char** arr, size_t size){
     return -1;
 }
 
-int is_in(char* str, char** list, int size){
+int is_in(const char* str,  const char** list, int size){
     if(str == NULL) return -1;
     for(size_t i = 0; i < size; ++i){
         if(list[i] == NULL) continue;

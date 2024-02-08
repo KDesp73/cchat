@@ -61,7 +61,7 @@ void connect_to(const char* ip_address, int port, char* username){
         if (fds[0].revents & POLLIN) {
             read(0, buffer, BUFFER_SIZE-1);
 
-            if(is_empty(buffer)) continue;
+            if(is_empty(buffer) || is_ansi(buffer)) continue;
 
             buffer[strcspn(buffer, "\n")] = 0; // remove newline
 

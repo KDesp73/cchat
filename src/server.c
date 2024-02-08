@@ -51,7 +51,7 @@ void *handle_stdin(void *arg) {
         char buffer[BUFFER_SIZE] = {0};
         read(STDIN_FILENO, buffer, BUFFER_SIZE - 1);
 
-        if (!is_empty(buffer)) {
+        if (!is_empty(buffer) && !is_ansi(buffer)) {
             buffer[strcspn(buffer, "\n")] = 0; // remove newline
 
             if(buffer[0] == '\\'){
