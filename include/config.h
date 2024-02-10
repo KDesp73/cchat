@@ -5,5 +5,6 @@
 #define TIMEOUT_MS 50000
 #define BUFFER_SIZE 1024
 #define VERSION "1.0.7"
+#define MAX_USERNAME_LENGTH 50
 
 #endif // CONFIG_H

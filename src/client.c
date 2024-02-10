@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdio.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -14,7 +15,14 @@
 #include "config.h"
 #include "utils.h"
 
+void client_siginthandler(int params){
+    INFO("Exited\n");
+    exit(0); 
+}
+
 void connect_to(const char* ip_address, int port, char* username){
+	signal(SIGINT, client_siginthandler);
+
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     DEBU("sockfd: %d\n", sockfd);
@@ -51,6 +59,7 @@ void connect_to(const char* ip_address, int port, char* username){
         .status = INFORMATION,
         .message = "OK?"
     };
+
     send(sockfd, data_to_string(data), BUFFER_SIZE, 0);
 
     while(1) {

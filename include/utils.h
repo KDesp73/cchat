@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 #include <time.h>
+#include <stddef.h>
 
 #define ARR_LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 
@@ -17,6 +18,11 @@ int is_in(const char* str, const char** list, int size);
 int search_int(int key, int* arr, size_t size);
 int search_str(const char* key, char** arr, size_t size);
 int is_ansi(const char* str);
+void null_terminate(char* str, int length);
+void print_string_esc_chars(const char* str);
+
+
+#define NULL_TERMINATE(str) null_terminate(str, strlen(str))
 
 
 

@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "config.h"
+#include "logging.h"
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -7,6 +8,38 @@
 #include <ctype.h>
 #include <stdio.h>
 
+void print_string_esc_chars(const char *str){
+    for(int i = 0; i < strlen(str) + 1; i++){
+        switch (str[i]) {
+            case '\0':
+                printf("\\0 ");
+                break;
+            case '\n':
+                printf("\\n ");
+                break;
+            default:
+                printf("%c ", str[i]);
+                break;
+        }
+    }
+    printf("\n");
+}
+
+void null_terminate(char* str, int length) {
+    if (str == NULL) {
+        return;
+    }
+
+    if (length <= 0) {
+        return;
+    }
+
+    if (str[length] == '\0') {
+        return;
+    }
+
+    str[length] = '\0';
+}
 
 int starts_with_escape_sequence(const char *str) {
     if (str == NULL || strlen(str) < 1 || str[0] != '\033') // '\033' represents octal escape sequence for ASCII escape character

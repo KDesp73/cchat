@@ -3,6 +3,7 @@
 #include <string.h>
 #include "data.h"
 #include "config.h"
+#include "logging.h"
 #include "screen.h"
 #include "utils.h"
 
@@ -25,7 +26,7 @@ void print_data(struct Data data){
     printf("\tid: %d\n", data.id);
     printf("\tuser: %s\n", data.user);
     printf("\tmessage: %s\n", data.message);
-    printf("\tis_error: %zu\n", data.status);
+    printf("\tstatus: %zu\n", data.status);
     printf("\ttime: %ld\n", data.time);
     printf("}\n");
 }
@@ -39,21 +40,23 @@ void print_message(struct Data* data){
 char* data_to_string(struct Data data) {
     char* formatting = "%d|%s|%s|%zu|%ld";
 
-    // Determine required size
     size_t len = snprintf(NULL, 0, formatting, data.id, data.user, data.message, data.status, data.time);
-
-    // Allocate memory
-    char *datastr = (char*) malloc(sizeof * datastr * (len + 1)); // +1 for null terminator
-    if (!datastr) {
-        fprintf(stderr, "%s() error: virtual memory allocation failed.\n", __func__);
-        return NULL; // Return NULL on allocation failure
+    if (len < 0) {
+        fprintf(stderr, "%s() error: snprintf returned an error while determining string length.\n", __func__);
+        return NULL;
     }
 
-    // Use snprintf with allocated buffer
-    if (snprintf(datastr, len + 1, formatting, data.id, data.user, data.message, data.status, data.time) < 0) {
-        fprintf(stderr, "%s() error: snprintf returned an error.\n", __func__);
-        free(datastr); // Free the allocated memory
-        return NULL;   // Return NULL on snprintf error
+    char *datastr = (char*) malloc((len + 1) * sizeof(char)); // +1 for null terminator
+    if (!datastr) {
+        fprintf(stderr, "%s() error: virtual memory allocation failed.\n", __func__);
+        return NULL;
+    }
+
+    int snprintf_result = snprintf(datastr, len + 1, formatting, data.id, data.user, data.message, data.status, data.time);
+    if (snprintf_result < 0 || (size_t)snprintf_result != len) {
+        fprintf(stderr, "%s() error: snprintf returned an error or produced unexpected result.\n", __func__);
+        free(datastr);
+        return NULL;
     }
 
     return datastr;

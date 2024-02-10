@@ -17,22 +17,28 @@
 
 void check_username(char** username) {
     if (*username == NULL) {
-        *username = (char *)calloc(strlen("user#") + 5, sizeof(char));
+        size_t random_len = 6;
+        size_t total_len = strlen("user#") + random_len + 1; // +1 for null terminator
+        *username = (char *)calloc(total_len, sizeof(char));
         WARN("Username not found\n");
         strcpy(*username, "user#");
-        strcat(*username, random_string(6));
+        strcat(*username, random_string(random_len));
         INFO("Your username now is: %s\n", *username);
-    }
-
-    if (*username != NULL && strcmp(*username, "server") == 0) {
+    } else if(strcmp(*username, "server") == 0) {
         WARN("Your username cannot be 'server'\n");
         free(*username);
-        *username = (char *)calloc(strlen("user#") + 6, sizeof(char));
+        size_t total_len = strlen("user#") + 6 + 1; // Assuming random_string(6) generates a string of length 6
+        *username = (char *)calloc(total_len, sizeof(char));
         strcpy(*username, "user#");
         strcat(*username, random_string(6));
         INFO("Your username now is: %s\n", *username);
+    } else if(strlen(*username) > MAX_USERNAME_LENGTH){
+        WARN("Your username cannot be more than %d characters\n", MAX_USERNAME_LENGTH);
+        exit(1);
     }
 }
+
+
 void check_address_and_port(char *ip_address, int port) {
     if (port == -345678 && ip_address == NULL) {
         ERRO("No ip address specified\n");
@@ -98,7 +104,9 @@ int main(int argc, char **argv) {
             printf("cchat v%s\n", VERSION);
             exit(0);
         case 'u':
-            arg_username = optarg;
+            arg_username = (char*) malloc((strlen(optarg) + 1) * sizeof(char));
+            strcat(arg_username, optarg);
+            arg_username[strlen(optarg)] = '\0';
             break;
         default:
             INFO("Usage: %s [serve|connect] -a [option] -p [option]\n", argv[0]);
@@ -122,10 +130,13 @@ int main(int argc, char **argv) {
         serve(ip_address, port, arg_username);
     } else if (strcmp("connect", command) == 0) {
         if(arg_username == NULL) check_username(&file_username);
+        else check_username(&arg_username);
         connect_to(ip_address, port, ((arg_username != NULL) ? arg_username : file_username));
     } else {
         ERRO("Invalid command: '%s'\n", command);
     }
+
+    free(file_username);
 
     return 0;
 }

@@ -18,6 +18,8 @@
 #include "config.h"
 #include "commands.h"
 
+pthread_mutex_t mutex;
+
 int clients[MAX_PENDING_CONNECTIONS];
 char* usernames[MAX_PENDING_CONNECTIONS+1];
 int num_clients = 0;
@@ -106,18 +108,28 @@ void *handle_client(void *arg) {
         close(clientfd);
         pthread_exit(NULL);
     } else {
+        pthread_mutex_lock(&mutex);
         clients[num_clients] = clientfd;
         usernames[num_usernames] = check_data->user;
         num_clients++;
         num_usernames++;
+        pthread_mutex_unlock(&mutex);
     }
 
     INFO("Client '%s' connected\n", check_data->user);
 
-    char str[] = "Connected as: ";
-    strcat(str, check_data->user);
+    char *str = malloc(strlen("Connected as: ") + strlen(check_data->user) + 1);
+    if (str == NULL) {
+        close(clientfd);
+        pthread_exit(NULL);
+    }
+    strcpy(str, "Connected as: ");
+    strcat(str, check_data->user); 
+
     send(clientfd, data_to_string(create_data(str, INFORMATION, SERVER_NAME)), BUFFER_SIZE, 0);
 
+    free(str);
+    
     while (1) {
         char buffer[BUFFER_SIZE] = {0};
         ssize_t bytes_received = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
@@ -158,17 +170,19 @@ void *handle_client(void *arg) {
     }
 
     // Remove the disconnected client from the list
+    pthread_mutex_lock(&mutex);
     for (int i = 0; i < num_clients; ++i) {
         if (clients[i] == clientfd) {
             for (int j = i; j < num_clients - 1; ++j) {
                 clients[j] = clients[j + 1];
-                usernames[j + 1] = usernames[j + 2]; // + 1 Because of server's username
+                usernames[j + 1] = usernames[j + 2]; // Shift username, skipping the server's username
             }
             num_clients--;
             num_usernames--;
             break;
         }
     }
+    pthread_mutex_unlock(&mutex);
 
     close(clientfd);
     pthread_exit(NULL);
@@ -183,6 +197,8 @@ void siginthandler(int params){
 
 void serve(const char *ip_address, int port, char* username) {
 	signal(SIGINT, siginthandler);
+
+    pthread_mutex_init(&mutex, NULL);
 
     if(username != NULL && !is_empty(username)){
         _username = (char*) calloc(strlen(username), sizeof(char));
@@ -241,7 +257,7 @@ void serve(const char *ip_address, int port, char* username) {
             pthread_detach(thread);
         }
     }
-    
+
     close_server(_sockfd);
 }
 
@@ -253,6 +269,7 @@ void close_server(int sockfd){
 
     free(_username);
     
+    pthread_mutex_destroy(&mutex);
     close(sockfd);
 }
 
