@@ -52,7 +52,7 @@ echo "[username]" > username
 - `\whoami`: Prints users username
 - `\whisper [username] [message]`: Sends private message to user with username `[username]`
 
-> More to be be implemented soon!
+> More to be implemented soon!
 
 ## License
 
