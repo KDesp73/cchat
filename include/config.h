@@ -1,9 +1,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define MAX_PENDING_CONNECTIONS 5
+#define MAX_PENDING_CONNECTIONS 10
 #define TIMEOUT_MS 50000
-#define BUFFER_SIZE 256
-#define VERSION "1.0.6"
+#define BUFFER_SIZE 1024
+#define VERSION "1.0.7"
+#define MAX_USERNAME_LENGTH 50
 
 #endif // CONFIG_H

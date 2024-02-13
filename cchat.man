@@ -1,6 +1,6 @@
 .\" Manpage for cchat.
 .\" Contact despoinidisk@gmail.com to correct errors or typos.
-.TH man 8 "01 Feb 2024" "1.0.6" "cchat man page"
+.TH man 8 "01 Feb 2024" "1.0.7" "cchat man page"
 
 .SH NAME
 
@@ -28,7 +28,7 @@ connect                             Connect to a server
 
 -v --version                        Prints the version of the executable
 
--u --username                       Specify your username
+.\" -u --username                       Specify your username
 
 .SH INTERNAL COMMANDS
 
@@ -51,7 +51,7 @@ Connect: cchat connect -a 127.0.0.1 -p 1234 -u user123
 
 .SH BUGS
 
-No known bugs.
+Specifying username from command line arguments causes problems. Feature removed for now.
 
 .SH AUTHOR
 

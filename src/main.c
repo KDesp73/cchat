@@ -14,24 +14,30 @@
 #include "logging.h"
 #include "client.h"
 
+
 void check_username(char** username) {
     if (*username == NULL) {
-        *username = (char *)calloc(strlen("user#") + 6, sizeof(char));
         WARN("Username not found\n");
-        strcpy(*username, "user#");
-        strcat(*username, random_string(6));
-        INFO("Your username now is: %s\n", *username);
+    } else if(is_empty(*username)) {
+        WARN("Username is empty\n");
+    } else if(strcmp(*username, "server") == 0) {
+        WARN("Your username cannot be 'server'\n");
+    } else if(strlen(*username) > MAX_USERNAME_LENGTH){
+        WARN("Your username cannot be more than %d characters\n", MAX_USERNAME_LENGTH);
+    } else {
+        return; 
     }
 
-    if (*username != NULL && strcmp(*username, "server") == 0) {
-        WARN("Your username cannot be 'server'\n");
-        free(*username);
-        *username = (char *)calloc(strlen("user#") + 6, sizeof(char));
-        strcpy(*username, "user#");
-        strcat(*username, random_string(6));
-        INFO("Your username now is: %s\n", *username);
-    }
+    free(*username);
+    size_t total_len = strlen("user#") + 6 + 1; // Assuming random_string(6) generates a string of length 6
+    *username = (char *)calloc(total_len, sizeof(char));
+    strcpy(*username, "user#");
+    strcat(*username, random_string(6));
+
+    INFO("Your username now is: %s\n", *username);
 }
+
+
 void check_address_and_port(char *ip_address, int port) {
     if (port == -345678 && ip_address == NULL) {
         ERRO("No ip address specified\n");
@@ -81,11 +87,11 @@ int main(int argc, char **argv) {
         {"address", required_argument, NULL, 'a'},
         {"port", required_argument, NULL, 'p'},
         {"version", no_argument, NULL, 'v'},
-        {"username", required_argument, NULL, 'u'},
+        // {"username", required_argument, NULL, 'u'},
         {NULL, 0, NULL, 0}};
 
     int opt;
-    while ((opt = getopt_long(argc, argv, "a:p:vu:", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "a:p:v", long_options, NULL)) != -1) {
         switch (opt) {
         case 'p':
             port = atoi(optarg);
@@ -96,9 +102,11 @@ int main(int argc, char **argv) {
         case 'v':
             printf("cchat v%s\n", VERSION);
             exit(0);
-        case 'u':
-            arg_username = optarg;
-            break;
+        // case 'u':
+        //     arg_username = (char*) malloc((strlen(optarg) + 1) * sizeof(char));
+        //     strcat(arg_username, optarg);
+        //     arg_username[strlen(optarg)] = '\0';
+        //     break;
         default:
             INFO("Usage: %s [serve|connect] -a [option] -p [option]\n", argv[0]);
             exit(1);
@@ -106,6 +114,10 @@ int main(int argc, char **argv) {
     }
 
     DEBU("username_path: %s\n", username_path);
+    if(arg_username != NULL) {
+        DEBU("arg_username: %s\n", arg_username);
+        DEBU("strlen(arg_username) = %zu\n", strlen(arg_username));
+    }
 
     check_address_and_port(ip_address, port);
 
@@ -117,10 +129,13 @@ int main(int argc, char **argv) {
         serve(ip_address, port, arg_username);
     } else if (strcmp("connect", command) == 0) {
         if(arg_username == NULL) check_username(&file_username);
+        else check_username(&arg_username);
         connect_to(ip_address, port, ((arg_username != NULL) ? arg_username : file_username));
     } else {
         ERRO("Invalid command: '%s'\n", command);
     }
+
+    free(file_username);
 
     return 0;
 }

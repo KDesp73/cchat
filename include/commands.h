@@ -12,7 +12,6 @@
  *  \ban [username]: Ban a user from the chat.
  *  \mute [username]: Mute a user in the chat.
  *  \unmute [username]: Unmute a previously muted user.
- *  \admin [username]: Give user server priviliges
  */
 
 #define COMMAND_HELP "help"
@@ -33,7 +32,7 @@ static char* command_help[] = {
 char* list(char** usernames, size_t num_usernames);
 char* help(char** commands, size_t size);
 char* clear();
-void whisper(int clientfd, int sockfd, char* buffer, char** usernames, size_t num_usernames);
-char* whoami(int fd, int sockfd, char**usernames, size_t num_usernames);
+void whisper(int clientfd, int sockfd, char* buffer, int* clients, size_t num_clients, char** usernames, size_t num_usernames);
+char* whoami(int fd, int sockfd, int* clients, size_t num_clients, char**usernames, size_t num_usernames);
 
 #endif // COMMANDS_H

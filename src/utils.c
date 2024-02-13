@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "config.h"
+#include "logging.h"
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -7,8 +8,58 @@
 #include <ctype.h>
 #include <stdio.h>
 
+void print_string_esc_chars(const char *str){
+    for(int i = 0; i < strlen(str) + 1; i++){
+        switch (str[i]) {
+            case '\0':
+                printf("\\0 ");
+                break;
+            case '\n':
+                printf("\\n ");
+                break;
+            default:
+                printf("%c ", str[i]);
+                break;
+        }
+    }
+    printf("\n");
+}
+
+void null_terminate(char* str, int length) {
+    if (str == NULL) {
+        return;
+    }
+
+    if (length <= 0) {
+        return;
+    }
+
+    if (str[length] == '\0') {
+        return;
+    }
+
+    str[length] = '\0';
+}
+
+int starts_with_escape_sequence(const char *str) {
+    if (str == NULL || strlen(str) < 1 || str[0] != '\033') // '\033' represents octal escape sequence for ASCII escape character
+        return 0;
+
+    return 1;
+}
+
+int is_ansi(const char* str){
+    if(starts_with_escape_sequence(str)) return 1;
+    if (str == NULL || strlen(str) < 2 || str[0] != '\x1B' || str[1] != '[')
+        return 0;
+
+    int len = strlen(str);
+    if (str[len - 1] < 'A' || (str[len - 1] > 'Z' && str[len - 1] < 'a') || str[len - 1] > 'z')
+        return 0;
 
 
+    return 1;
+}
 
 int starts_with(const char *a, const char *b) {
    if(strncmp(a, b, strlen(b)) == 0) return 1;
@@ -30,7 +81,7 @@ int search_str(const char* key, char** arr, size_t size){
     return -1;
 }
 
-int is_in(char* str, char** list, int size){
+int is_in(const char* str,  const char** list, int size){
     if(str == NULL) return -1;
     for(size_t i = 0; i < size; ++i){
         if(list[i] == NULL) continue;
@@ -86,10 +137,10 @@ char* expand_time(time_t time){
 
 char* read_file_line(const char* path){
     FILE* fptr = fopen(path, "r");
-    char* buffer = (char*) calloc(100, sizeof(char));
+    char* buffer = (char*) calloc(256, sizeof(char));
 
     if(fptr){
-        fgets(buffer, 100, fptr);
+        fgets(buffer, 256, fptr);
         fclose(fptr);
     } else return NULL;
 

@@ -18,6 +18,8 @@
 #include "config.h"
 #include "commands.h"
 
+pthread_mutex_t mutex;
+
 int clients[MAX_PENDING_CONNECTIONS];
 char* usernames[MAX_PENDING_CONNECTIONS+1];
 int num_clients = 0;
@@ -25,6 +27,11 @@ int num_usernames = 0;
 
 char* colors[MAX_PENDING_CONNECTIONS + 1] = {
     red, 
+    green, 
+    yellow, 
+    blue, 
+    purple, 
+    cyan, 
     green, 
     yellow, 
     blue, 
@@ -51,7 +58,7 @@ void *handle_stdin(void *arg) {
         char buffer[BUFFER_SIZE] = {0};
         read(STDIN_FILENO, buffer, BUFFER_SIZE - 1);
 
-        if (!is_empty(buffer)) {
+        if (!is_empty(buffer) && !is_ansi(buffer)) {
             buffer[strcspn(buffer, "\n")] = 0; // remove newline
 
             if(buffer[0] == '\\'){
@@ -106,18 +113,33 @@ void *handle_client(void *arg) {
         close(clientfd);
         pthread_exit(NULL);
     } else {
+        pthread_mutex_lock(&mutex);
         clients[num_clients] = clientfd;
         usernames[num_usernames] = check_data->user;
         num_clients++;
         num_usernames++;
+        pthread_mutex_unlock(&mutex);
     }
 
     INFO("Client '%s' connected\n", check_data->user);
 
-    char str[] = "Connected as: ";
-    strcat(str, check_data->user);
-    send(clientfd, data_to_string(create_data(str, INFORMATION, SERVER_NAME)), BUFFER_SIZE, 0);
+    char *str = malloc(strlen("Connected as: ") + strlen(check_data->user) + 1);
+    if (str == NULL) {
+        close(clientfd);
+        pthread_exit(NULL);
+    }
+    strcpy(str, "Connected as: ");
+    strcat(str, check_data->user); 
 
+    DEBU("str: %s\n", str);
+
+    struct Data data = create_data(str, INFORMATION, SERVER_NAME);
+    char* datastr = data_to_string(data);
+    DEBU("%s\n", datastr);
+    send(clientfd, datastr, BUFFER_SIZE, 0);
+
+    free(str);
+    
     while (1) {
         char buffer[BUFFER_SIZE] = {0};
         ssize_t bytes_received = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
@@ -151,24 +173,26 @@ void *handle_client(void *arg) {
                 }
             }
 
-            free(data->user);
-            free(data->message);
+            if(data->user != NULL) free(data->user);
+            // if(data->message != NULL) free(data->message);
             free(data);
         }
     }
 
     // Remove the disconnected client from the list
+    pthread_mutex_lock(&mutex);
     for (int i = 0; i < num_clients; ++i) {
         if (clients[i] == clientfd) {
             for (int j = i; j < num_clients - 1; ++j) {
                 clients[j] = clients[j + 1];
-                usernames[j + 1] = usernames[j + 2]; // + 1 Because of server's username
+                usernames[j + 1] = usernames[j + 2]; // Shift username, skipping the server's username
             }
             num_clients--;
             num_usernames--;
             break;
         }
     }
+    pthread_mutex_unlock(&mutex);
 
     close(clientfd);
     pthread_exit(NULL);
@@ -183,6 +207,8 @@ void siginthandler(int params){
 
 void serve(const char *ip_address, int port, char* username) {
 	signal(SIGINT, siginthandler);
+
+    pthread_mutex_init(&mutex, NULL);
 
     if(username != NULL && !is_empty(username)){
         _username = (char*) calloc(strlen(username), sizeof(char));
@@ -241,7 +267,7 @@ void serve(const char *ip_address, int port, char* username) {
             pthread_detach(thread);
         }
     }
-    
+
     close_server(_sockfd);
 }
 
@@ -253,6 +279,7 @@ void close_server(int sockfd){
 
     free(_username);
     
+    pthread_mutex_destroy(&mutex);
     close(sockfd);
 }
 
@@ -272,10 +299,10 @@ void run_command(char* command, int fd){
     } else if(strcmp(command, COMMAND_CLEAR) == 0) {
         buffer = clear();
     } else if(starts_with(command, COMMAND_WHISPER)) {
-        whisper(fd, _sockfd, command, usernames, num_usernames);
+        whisper(fd, _sockfd, command, clients, num_clients, usernames, num_usernames);
         return;
     } else if(strcmp(command, COMMAND_WHOAMI) == 0) {
-        buffer = whoami(fd, _sockfd, usernames, num_usernames);
+        buffer = whoami(fd, _sockfd, clients, num_clients, usernames, num_usernames);
     } else {
         if(fd == _sockfd) {
             WARN("%s\n", ERROR_COMMAND_NOT_FOUND);

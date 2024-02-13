@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "data.h"
+#include "config.h"
+#include "logging.h"
 #include "screen.h"
 #include "utils.h"
 
 
-struct Data create_data(const char* message, int status, char* _username){
+struct Data create_data(const char* message, DataStatus status, char* _username){
     struct Data data;
 
     data.id = -1;
@@ -24,7 +26,7 @@ void print_data(struct Data data){
     printf("\tid: %d\n", data.id);
     printf("\tuser: %s\n", data.user);
     printf("\tmessage: %s\n", data.message);
-    printf("\tis_error: %zu\n", data.status);
+    printf("\tstatus: %d\n", data.status);
     printf("\ttime: %ld\n", data.time);
     printf("}\n");
 }
@@ -36,23 +38,28 @@ void print_message(struct Data* data){
 }
 
 char* data_to_string(struct Data data) {
-    char* formatting = "%d|%s|%s|%zu|%ld";
+    char* formatting = "%d|%s|%s|%d|%ld";
 
-    // Determine required size
     size_t len = snprintf(NULL, 0, formatting, data.id, data.user, data.message, data.status, data.time);
-
-    // Allocate memory
-    char *datastr = malloc(sizeof *datastr * (len + 1)); // +1 for null terminator
-    if (!datastr) {
-        fprintf(stderr, "%s() error: virtual memory allocation failed.\n", __func__);
-        return NULL; // Return NULL on allocation failure
+    if (len < 0) {
+        fprintf(stderr, "%s() error: snprintf returned an error while determining string length.\n", __func__);
+        return NULL;
     }
 
-    // Use snprintf with allocated buffer
-    if (snprintf(datastr, len + 1, formatting, data.id, data.user, data.message, data.status, data.time) < 0) {
-        fprintf(stderr, "%s() error: snprintf returned an error.\n", __func__);
-        free(datastr); // Free the allocated memory
-        return NULL;   // Return NULL on snprintf error
+    
+    
+    char *datastr = (char*) malloc((len + 1) * sizeof(char)); // +1 for null terminator
+    if (!datastr) {
+        fprintf(stderr, "%s() error: virtual memory allocation failed.\n", __func__);
+        return NULL;
+    }
+
+    int snprintf_result = snprintf(datastr, len + 1, formatting, data.id, data.user, data.message, data.status, data.time);
+    // datastr[len] = '\0';
+    if (snprintf_result < 0 || (size_t)snprintf_result < len) {
+        fprintf(stderr, "%s() error: snprintf returned an error or produced unexpected result.\n", __func__);
+        free(datastr);
+        return NULL;
     }
 
     return datastr;
@@ -64,7 +71,7 @@ struct Data *string_to_data(char *str) {
         return NULL;
     }
 
-    struct Data *data = (struct Data *)malloc(sizeof(struct Data));
+    struct Data *data = (struct Data *) malloc(sizeof(struct Data));
 
     if (!data) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -105,7 +112,7 @@ struct Data *string_to_data(char *str) {
     if (!token) {
         // fprintf(stderr, "Invalid input string (is_error).\n");
         free(data->user);
-        free(data->message);
+        // free(data->message);
         free(data);
         return NULL;
     }
@@ -116,7 +123,7 @@ struct Data *string_to_data(char *str) {
     if (!token) {
         // fprintf(stderr, "Invalid input string (time).\n");
         free(data->user);
-        free(data->message);
+        // free(data->message);
         free(data);
         return NULL;
     }
