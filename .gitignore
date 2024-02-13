@@ -1,5 +1,6 @@
 cchat
 build
+test
 scripts
 .cache
 compile_commands.json
