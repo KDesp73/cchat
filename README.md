@@ -41,7 +41,7 @@ echo "[username]" > username
 
 - `-a`, `--address`: Specify the ip address
 - `-p`, `--port`: Specify the port
-- `-u`, `--username`: Specify your username. Overrides the file username
+<!-- - `-u`, `--username`: Specify your username. Overrides the file username -->
 - `-v`, `--version`: Print the program's version
 
 ## Internal commands
