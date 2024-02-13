@@ -132,10 +132,8 @@ void *handle_client(void *arg) {
     strcat(str, check_data->user); 
 
     DEBU("str: %s\n", str);
-    print_string_esc_chars(str);
 
     struct Data data = create_data(str, INFORMATION, SERVER_NAME);
-    print_data(data);
     char* datastr = data_to_string(data);
     DEBU("%s\n", datastr);
     send(clientfd, datastr, BUFFER_SIZE, 0);

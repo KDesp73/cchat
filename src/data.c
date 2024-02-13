@@ -50,7 +50,6 @@ char* data_to_string(struct Data data) {
     
     char *datastr = (char*) malloc((len + 1) * sizeof(char)); // +1 for null terminator
     if (!datastr) {
-        print_data(data);
         fprintf(stderr, "%s() error: virtual memory allocation failed.\n", __func__);
         return NULL;
     }

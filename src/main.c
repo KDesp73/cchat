@@ -17,25 +17,24 @@
 
 void check_username(char** username) {
     if (*username == NULL) {
-        size_t random_len = 6;
-        size_t total_len = strlen("user#") + random_len + 1; // +1 for null terminator
-        *username = (char *)calloc(total_len, sizeof(char));
         WARN("Username not found\n");
-        strcpy(*username, "user#");
-        strcat(*username, random_string(random_len));
-        INFO("Your username now is: %s\n", *username);
+    } else if(is_empty(*username)) {
+        WARN("Username is empty\n");
     } else if(strcmp(*username, "server") == 0) {
         WARN("Your username cannot be 'server'\n");
-        free(*username);
-        size_t total_len = strlen("user#") + 6 + 1; // Assuming random_string(6) generates a string of length 6
-        *username = (char *)calloc(total_len, sizeof(char));
-        strcpy(*username, "user#");
-        strcat(*username, random_string(6));
-        INFO("Your username now is: %s\n", *username);
     } else if(strlen(*username) > MAX_USERNAME_LENGTH){
         WARN("Your username cannot be more than %d characters\n", MAX_USERNAME_LENGTH);
-        exit(1);
+    } else {
+        return; 
     }
+
+    free(*username);
+    size_t total_len = strlen("user#") + 6 + 1; // Assuming random_string(6) generates a string of length 6
+    *username = (char *)calloc(total_len, sizeof(char));
+    strcpy(*username, "user#");
+    strcat(*username, random_string(6));
+
+    INFO("Your username now is: %s\n", *username);
 }
 
 
