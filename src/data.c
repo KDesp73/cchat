@@ -8,7 +8,7 @@
 #include "utils.h"
 
 
-struct Data create_data(const char* message, int status, char* _username){
+struct Data create_data(const char* message, DataStatus status, char* _username){
     struct Data data;
 
     data.id = -1;
@@ -26,7 +26,7 @@ void print_data(struct Data data){
     printf("\tid: %d\n", data.id);
     printf("\tuser: %s\n", data.user);
     printf("\tmessage: %s\n", data.message);
-    printf("\tstatus: %zu\n", data.status);
+    printf("\tstatus: %d\n", data.status);
     printf("\ttime: %ld\n", data.time);
     printf("}\n");
 }
@@ -38,7 +38,7 @@ void print_message(struct Data* data){
 }
 
 char* data_to_string(struct Data data) {
-    char* formatting = "%d|%s|%s|%zu|%ld";
+    char* formatting = "%d|%s|%s|%d|%ld";
 
     size_t len = snprintf(NULL, 0, formatting, data.id, data.user, data.message, data.status, data.time);
     if (len < 0) {
@@ -46,14 +46,18 @@ char* data_to_string(struct Data data) {
         return NULL;
     }
 
+    
+    
     char *datastr = (char*) malloc((len + 1) * sizeof(char)); // +1 for null terminator
     if (!datastr) {
+        print_data(data);
         fprintf(stderr, "%s() error: virtual memory allocation failed.\n", __func__);
         return NULL;
     }
 
     int snprintf_result = snprintf(datastr, len + 1, formatting, data.id, data.user, data.message, data.status, data.time);
-    if (snprintf_result < 0 || (size_t)snprintf_result != len) {
+    // datastr[len] = '\0';
+    if (snprintf_result < 0 || (size_t)snprintf_result < len) {
         fprintf(stderr, "%s() error: snprintf returned an error or produced unexpected result.\n", __func__);
         free(datastr);
         return NULL;

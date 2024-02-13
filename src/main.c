@@ -88,11 +88,11 @@ int main(int argc, char **argv) {
         {"address", required_argument, NULL, 'a'},
         {"port", required_argument, NULL, 'p'},
         {"version", no_argument, NULL, 'v'},
-        {"username", required_argument, NULL, 'u'},
+        // {"username", required_argument, NULL, 'u'},
         {NULL, 0, NULL, 0}};
 
     int opt;
-    while ((opt = getopt_long(argc, argv, "a:p:vu:", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "a:p:v", long_options, NULL)) != -1) {
         switch (opt) {
         case 'p':
             port = atoi(optarg);
@@ -103,11 +103,11 @@ int main(int argc, char **argv) {
         case 'v':
             printf("cchat v%s\n", VERSION);
             exit(0);
-        case 'u':
-            arg_username = (char*) malloc((strlen(optarg) + 1) * sizeof(char));
-            strcat(arg_username, optarg);
-            arg_username[strlen(optarg)] = '\0';
-            break;
+        // case 'u':
+        //     arg_username = (char*) malloc((strlen(optarg) + 1) * sizeof(char));
+        //     strcat(arg_username, optarg);
+        //     arg_username[strlen(optarg)] = '\0';
+        //     break;
         default:
             INFO("Usage: %s [serve|connect] -a [option] -p [option]\n", argv[0]);
             exit(1);
