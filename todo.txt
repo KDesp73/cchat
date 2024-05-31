@@ -15,6 +15,7 @@ TODO: send emojis with :emoji:
 TODO: synchronize threads
 TODO: fix data_to_string method issues
 TODO: create tests
+TODO: add help option
 DONE: split into multiple files (headers)
 DONE: communication protocol
 DONE: usernames

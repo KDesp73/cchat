@@ -1,6 +1,4 @@
 #include "utils.h"
-#include "config.h"
-#include "logging.h"
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -9,7 +7,7 @@
 #include <stdio.h>
 
 void print_string_esc_chars(const char *str){
-    for(int i = 0; i < strlen(str) + 1; i++){
+    for(size_t i = 0; i < strlen(str) + 1; i++){
         switch (str[i]) {
             case '\0':
                 printf("\\0 ");
@@ -159,7 +157,7 @@ char *random_string(size_t length) {
         randomString = malloc(sizeof(char) * (length +1));
 
         if (randomString) {            
-            for (int n = 0;n < length;n++) {            
+            for (size_t n = 0;n < length;n++) {            
                 int key = rand() % (int)(sizeof(charset) -1);
                 randomString[n] = charset[key];
             }

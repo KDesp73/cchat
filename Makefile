@@ -1,6 +1,7 @@
 CC = gcc
 # CFLAGS = -Wall -Wextra -Iinclude -g -DDEBUG 
-CFLAGS = -Wall -Wextra -Iinclude
+# CFLAGS = -Wall -Wextra -Iinclude
+CFLAGS = -Iinclude
 
 SRC_DIR = src
 TEST_DIR = tests

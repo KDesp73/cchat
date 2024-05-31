@@ -10,13 +10,15 @@
 #include <unistd.h>
 
 #include "server.h"
-#include "screen.h"
 #include "data.h"
 #include "errors.h"
-#include "logging.h"
+#include "screen.h"
 #include "utils.h"
 #include "config.h"
 #include "commands.h"
+
+#define CLIB_IMPLEMENTATION
+#include "clib.h"
 
 pthread_mutex_t mutex;
 
@@ -88,7 +90,7 @@ void *handle_stdin(void *arg) {
 void *handle_client(void *arg) {
     int clientfd = *((int *)arg);
     free(arg);
-    DEBU("clientfd: %d\n", clientfd);
+    DEBU("clientfd: %d", clientfd);
 
     // Get init data from client
     char check_buf[BUFFER_SIZE];
@@ -101,13 +103,13 @@ void *handle_client(void *arg) {
 
     // Add the new client to the list
     if (num_clients >= MAX_PENDING_CONNECTIONS) {
-        ERRO("%s\n", ERROR_MAX_CLIENTS_REACHED);
+        ERRO("%s", ERROR_MAX_CLIENTS_REACHED);
         send(clientfd, data_to_string(create_data(ERROR_MAX_CLIENTS_REACHED, ERROR, SERVER_NAME)), BUFFER_SIZE, 0);
 
         close(clientfd);
         pthread_exit(NULL);
     } else if(is_in(check_data->user, usernames, num_usernames)) {
-        WARN("%s\n", ERROR_USERNAME_EXISTS);
+        WARN("%s", ERROR_USERNAME_EXISTS);
         send(clientfd, data_to_string(create_data(ERROR_USERNAME_EXISTS, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
 
         close(clientfd);
@@ -121,7 +123,7 @@ void *handle_client(void *arg) {
         pthread_mutex_unlock(&mutex);
     }
 
-    INFO("Client '%s' connected\n", check_data->user);
+    INFO("Client '%s' connected", check_data->user);
 
     char *str = malloc(strlen("Connected as: ") + strlen(check_data->user) + 1);
     if (str == NULL) {
@@ -131,11 +133,11 @@ void *handle_client(void *arg) {
     strcpy(str, "Connected as: ");
     strcat(str, check_data->user); 
 
-    DEBU("str: %s\n", str);
+    DEBU("str: %s", str);
 
     struct Data data = create_data(str, INFORMATION, SERVER_NAME);
     char* datastr = data_to_string(data);
-    DEBU("%s\n", datastr);
+    DEBU("%s", datastr);
     send(clientfd, datastr, BUFFER_SIZE, 0);
 
     free(str);
@@ -145,7 +147,7 @@ void *handle_client(void *arg) {
         ssize_t bytes_received = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
 
         if (bytes_received <= 0) {
-            INFO("Client disconnected\n");
+            INFO("Client disconnected");
             break;
         }
 
@@ -157,7 +159,7 @@ void *handle_client(void *arg) {
             // Check if message is command
             if(data->message[0] == '\\') {
                 char* command = data->message + 1; 
-                DEBU("Command: %s\n", command);
+                DEBU("Command: %s", command);
                 run_command(command, clientfd);
                 continue;
             } else {
@@ -200,7 +202,7 @@ void *handle_client(void *arg) {
 
 void siginthandler(int params){
     close_server(_sockfd); 
-    INFO("Server closed\n");
+    INFO("Server closed");
     
     exit(0);
 }
@@ -218,10 +220,10 @@ void serve(const char *ip_address, int port, char* username) {
     // Add server's username in the list of usernames
     if(username != NULL) usernames[num_usernames++] = username;
     else usernames[num_usernames++] = "server";
-    DEBU("server username: %s\n", _username);
+    DEBU("server username: %s", _username);
 
     _sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    DEBU("sockfd: %d\n", _sockfd);
+    DEBU("sockfd: %d", _sockfd);
 
     struct sockaddr_in address = {
         .sin_family = AF_INET,
@@ -233,15 +235,15 @@ void serve(const char *ip_address, int port, char* username) {
         handle_error("Bind Failed");
     }
 
-    INFO("Press Ctrl+C to close server\n");
-    INFO("Waiting for clients to connect\n");
+    INFO("Press Ctrl+C to close server");
+    INFO("Waiting for clients to connect");
     if (listen(_sockfd, MAX_PENDING_CONNECTIONS) < 0) {
         handle_error("Listen failed");
     }
 
     pthread_t stdin_thread;
     if (pthread_create(&stdin_thread, NULL, handle_stdin, NULL) != 0) {
-        ERRO("Error creating thread for stdin\n");
+        ERRO("Error creating thread for stdin");
     } else {
         pthread_detach(stdin_thread);
     }
@@ -250,7 +252,7 @@ void serve(const char *ip_address, int port, char* username) {
         int clientfd = accept(_sockfd, 0, 0);
 
         if (clientfd < 0) {
-            ERRO("Error accepting connection\n");
+            ERRO("Error accepting connection");
             continue;
         }
 
@@ -260,7 +262,7 @@ void serve(const char *ip_address, int port, char* username) {
         *client_arg = clientfd;
 
         if (pthread_create(&thread, NULL, handle_client, client_arg) != 0) {
-            ERRO("Error creating thread\n");
+            ERRO("Error creating thread");
             close(clientfd);
             free(client_arg); // Free the allocated memory
         } else {
@@ -305,7 +307,7 @@ void run_command(char* command, int fd){
         buffer = whoami(fd, _sockfd, clients, num_clients, usernames, num_usernames);
     } else {
         if(fd == _sockfd) {
-            WARN("%s\n", ERROR_COMMAND_NOT_FOUND);
+            WARN("%s", ERROR_COMMAND_NOT_FOUND);
         } else {
             send(fd, data_to_string(create_data(ERROR_COMMAND_NOT_FOUND, WARNING, SERVER_NAME)), BUFFER_SIZE, 0);
         }

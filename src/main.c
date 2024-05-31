@@ -11,19 +11,21 @@
 #include "utils.h"
 #include "server.h"
 #include "config.h"
-#include "logging.h"
 #include "client.h"
+
+#define CLIB_IMPLEMENTATION
+#include "clib.h"
 
 
 void check_username(char** username) {
     if (*username == NULL) {
-        WARN("Username not found\n");
+        WARN("Username not found");
     } else if(is_empty(*username)) {
-        WARN("Username is empty\n");
+        WARN("Username is empty");
     } else if(strcmp(*username, "server") == 0) {
-        WARN("Your username cannot be 'server'\n");
+        WARN("Your username cannot be 'server'");
     } else if(strlen(*username) > MAX_USERNAME_LENGTH){
-        WARN("Your username cannot be more than %d characters\n", MAX_USERNAME_LENGTH);
+        WARN("Your username cannot be more than %d characters", MAX_USERNAME_LENGTH);
     } else {
         return; 
     }
@@ -34,35 +36,35 @@ void check_username(char** username) {
     strcpy(*username, "user#");
     strcat(*username, random_string(6));
 
-    INFO("Your username now is: %s\n", *username);
+    INFO("Your username now is: %s", *username);
 }
 
 
 void check_address_and_port(char *ip_address, int port) {
     if (port == -345678 && ip_address == NULL) {
-        ERRO("No ip address specified\n");
-        ERRO("No port specified\n");
+        ERRO("No ip address specified");
+        ERRO("No port specified");
         exit(1);
     }
 
     if (port == -345678) {
-        ERRO("No port specified\n");
+        ERRO("No port specified");
         exit(1);
     }
 
     if (ip_address == NULL) {
-        ERRO("No ip address specified\n");
+        ERRO("No ip address specified");
         exit(1);
     }
 
     if (!is_valid_ip_address(ip_address)) {
-        ERRO("Invalid ip address\n");
+        ERRO("Invalid ip address");
         exit(1);
     }
 
     // Port should range between 1024 and 49151
     if (port < 1024 || port > 49151) {
-        ERRO("Port should range between 1024 and 49151\n");
+        ERRO("Port should range between 1024 and 49151");
         exit(1);
     }
 }
@@ -73,7 +75,7 @@ int main(int argc, char **argv) {
     const char* rest = "/.config/cchat/username";
 
     if(home == NULL){
-        handle_error("HOME environment variable not set\n");
+        handle_error("HOME environment variable not set");
     }
 
     char username_path[strlen(home) + strlen(rest) + 1];
@@ -108,15 +110,15 @@ int main(int argc, char **argv) {
         //     arg_username[strlen(optarg)] = '\0';
         //     break;
         default:
-            INFO("Usage: %s [serve|connect] -a [option] -p [option]\n", argv[0]);
+            INFO("Usage: %s [serve|connect] -a [option] -p [option]", argv[0]);
             exit(1);
         }
     }
 
-    DEBU("username_path: %s\n", username_path);
+    DEBU("username_path: %s", username_path);
     if(arg_username != NULL) {
-        DEBU("arg_username: %s\n", arg_username);
-        DEBU("strlen(arg_username) = %zu\n", strlen(arg_username));
+        DEBU("arg_username: %s", arg_username);
+        DEBU("strlen(arg_username) = %zu", strlen(arg_username));
     }
 
     check_address_and_port(ip_address, port);
@@ -132,7 +134,7 @@ int main(int argc, char **argv) {
         else check_username(&arg_username);
         connect_to(ip_address, port, ((arg_username != NULL) ? arg_username : file_username));
     } else {
-        ERRO("Invalid command: '%s'\n", command);
+        ERRO("Invalid command: '%s'", command);
     }
 
     free(file_username);

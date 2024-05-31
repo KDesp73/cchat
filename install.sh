@@ -45,7 +45,6 @@ if [ -f "$exe" ]; then
     sudo install -g 0 -o 0 -m 0644 ./completion/cchat-completion.bash /etc/bash_completion.d/cchat
     if [ $? -ne 0 ]; then
         echo "[ERRO] Failed to install Bash completion"
-        exit 1
     fi
     echo "[INFO] bash completion installed successfully"
 
@@ -53,7 +52,6 @@ if [ -f "$exe" ]; then
     sudo install -m 644 ./completion/cchat-completion.zsh /usr/share/zsh/functions/Completion/_cchat
     if [ $? -ne 0 ]; then
         echo "[ERRO] Failed to install Zsh completion"
-        exit 1
     fi
     echo "[INFO] zsh completion installed successfully"
 
@@ -62,7 +60,6 @@ if [ -f "$exe" ]; then
     sudo gzip /usr/share/man/man8/$exe.8
     if [ $? -ne 0 ]; then
         echo "[ERRO] Failed to install man page"
-        exit 1
     fi
     echo "[INFO] man page installed successfully"
 

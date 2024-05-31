@@ -1,7 +1,6 @@
 #include "commands.h"
 #include "data.h"
 #include "errors.h"
-#include "logging.h"
 #include "config.h"
 #include "utils.h"
 #include <stdio.h>
@@ -9,6 +8,8 @@
 #include <string.h>
 #include <sys/socket.h>
 
+#define CLIB_IMPLEMENTATION
+#include "clib.h"
 
 char* return_arr(char** arr, size_t size){
     char* buffer = (char*) malloc(size * 256 * sizeof(char));
@@ -47,7 +48,7 @@ void whisper(int clientfd, int sockfd, char* buffer, int* clients, size_t num_cl
         if(clientfd != sockfd)
             send(clientfd, data_to_string(create_data(ERROR_INCORRECT_COMMAND, WARNING, usernames[0])), BUFFER_SIZE, 0);
         else 
-            WARN("%s\n", ERROR_INCORRECT_COMMAND);
+            WARN("%s", ERROR_INCORRECT_COMMAND);
 
 
         free(data);
@@ -116,13 +117,13 @@ void whisper(int clientfd, int sockfd, char* buffer, int* clients, size_t num_cl
     strcpy(data->message, token);
 
     data->time = get_current_time();
-    DEBU("WHISPER: data: %s\n", data_to_string(*data));
+    DEBU("WHISPER: data: %s", data_to_string(*data));
     if(data->id == clientfd) {
-        DEBU("fd: %d\n", clientfd);
+        DEBU("fd: %d", clientfd);
         if(clientfd != sockfd) {
             send(clientfd, data_to_string(create_data(ERROR_MESSAGING_SELF, WARNING, usernames[0])), BUFFER_SIZE, 0);
         } else {
-            WARN("%s\n", ERROR_MESSAGING_SELF);
+            WARN("%s", ERROR_MESSAGING_SELF);
         } 
 
         free(data->message);

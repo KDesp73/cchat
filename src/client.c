@@ -10,13 +10,14 @@
 
 #include "client.h"
 #include "data.h"
-#include "logging.h"
-#include "screen.h"
 #include "config.h"
 #include "utils.h"
 
+#define CLIB_IMPLEMENTATION
+#include "clib.h"
+
 void client_siginthandler(int params){
-    INFO("Exited\n");
+    INFO("Exited");
     exit(0); 
 }
 
@@ -25,7 +26,7 @@ void connect_to(const char* ip_address, int port, char* username){
 
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    DEBU("sockfd: %d\n", sockfd);
+    DEBU("sockfd: %d", sockfd);
 
     struct sockaddr_in address = {
         .sin_family = AF_INET,
@@ -96,16 +97,16 @@ void connect_to(const char* ip_address, int port, char* username){
                         print_message(data);
                         break;
                     case ERROR:
-                        ERRO("%s\n", data->message);
+                        ERRO("%s", data->message);
                         break;
                     case INFORMATION: 
-                        INFO("%s\n", data->message);
+                        INFO("%s", data->message);
                         break;
                     case WARNING:
-                        WARN("%s\n", data->message);
+                        WARN("%s", data->message);
                         break;
                     case COMMAND:
-                        printf("%s\n", data->message);
+                        printf("%s", data->message);
                         break;
                     default:
                         fprintf(stderr, "Invalid status: %zu\n", data->status);

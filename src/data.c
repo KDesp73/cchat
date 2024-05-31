@@ -2,11 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "data.h"
-#include "config.h"
-#include "logging.h"
-#include "screen.h"
 #include "utils.h"
 
+#define CLIB_IMPLEMENTATION
+#include "clib.h"
 
 struct Data create_data(const char* message, DataStatus status, char* _username){
     struct Data data;
@@ -34,7 +33,7 @@ void print_data(struct Data data){
 void print_message(struct Data* data){
     char time_str[32];
     strftime(time_str, 32, "%d.%m.%Y %H:%M:%S", localtime(&data->time));  
-    printf("%s:%s %s %s(%s)%s\n", data->user, reset, data->message, black, time_str, reset);
+    printf("%s:%s %s %s(%s)%s\n", data->user, RESET, data->message, COLOR_FG(0), time_str, RESET);
 }
 
 char* data_to_string(struct Data data) {
