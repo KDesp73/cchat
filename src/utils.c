@@ -79,7 +79,7 @@ int search_str(const char* key, char** arr, size_t size){
     return -1;
 }
 
-int is_in(const char* str,  const char** list, int size){
+int is_in(const char* str,  char** list, int size){
     if(str == NULL) return -1;
     for(size_t i = 0; i < size; ++i){
         if(list[i] == NULL) continue;

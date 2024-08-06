@@ -1,7 +1,12 @@
 CC = gcc
-# CFLAGS = -Wall -Wextra -Iinclude -g -DDEBUG 
-# CFLAGS = -Wall -Wextra -Iinclude
-CFLAGS = -Iinclude
+
+CFLAGS = -Wall -Iinclude -ggdb -DDEBUG 
+LDFLAGS = 
+
+ifdef SANITIZE
+	CFLAGS += -fsanitize=address,undefined
+	LDFLAGS += -fsanitize=address,undefined
+endif
 
 SRC_DIR = src
 TEST_DIR = tests
@@ -36,7 +41,7 @@ $(BUILD_DIR):
 
 # Rule to build the executable
 $(TARGET): $(OBJ_FILES)
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(TEST): $(OBJ_TEST_FILES) $(OBJ_EXCEPT_MAIN)
 	$(CC) -o $@ $^

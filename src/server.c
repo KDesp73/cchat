@@ -207,7 +207,10 @@ void siginthandler(int params){
     exit(0);
 }
 
-void serve(const char *ip_address, int port, char* username) {
+void serve(const char *ip_address, int port, const char* username) {
+    assert(username != NULL);
+    assert(ip_address != NULL);
+
 	signal(SIGINT, siginthandler);
 
     pthread_mutex_init(&mutex, NULL);
@@ -218,8 +221,7 @@ void serve(const char *ip_address, int port, char* username) {
     }
 
     // Add server's username in the list of usernames
-    if(username != NULL) usernames[num_usernames++] = username;
-    else usernames[num_usernames++] = "server";
+    usernames[num_usernames++] = (char*) username;
     DEBU("server username: %s", _username);
 
     _sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -232,13 +234,13 @@ void serve(const char *ip_address, int port, char* username) {
     };
 
     if (bind(_sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        handle_error("Bind Failed");
+        PANIC("Bind Failed");
     }
 
     INFO("Press Ctrl+C to close server");
     INFO("Waiting for clients to connect");
     if (listen(_sockfd, MAX_PENDING_CONNECTIONS) < 0) {
-        handle_error("Listen failed");
+        PANIC("Listen failed");
     }
 
     pthread_t stdin_thread;
@@ -297,7 +299,7 @@ void run_command(char* command, int fd){
     if(strcmp(command, COMMAND_LIST) == 0){
         buffer = list(usernames, num_usernames);
     } else if(strcmp(command, COMMAND_HELP) == 0 || strcmp(command, COMMAND_HELP_SHORT) == 0){
-        buffer = help(command_help, ARR_LEN(command_help));
+        buffer = help(command_help, ARRAY_LEN(command_help));
     } else if(strcmp(command, COMMAND_CLEAR) == 0) {
         buffer = clear();
     } else if(starts_with(command, COMMAND_WHISPER)) {

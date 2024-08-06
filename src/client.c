@@ -21,7 +21,7 @@ void client_siginthandler(int params){
     exit(0); 
 }
 
-void connect_to(const char* ip_address, int port, char* username){
+void connect_to(const char* ip_address, int port, const char* username){
 	signal(SIGINT, client_siginthandler);
 
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -37,7 +37,7 @@ void connect_to(const char* ip_address, int port, char* username){
     int connect_status = connect(sockfd, (struct sockaddr*)&address, sizeof(address));
 
     if(connect_status == -1) {
-        handle_error("Connect failed");
+        PANIC("Connect failed");
     }
 
     struct pollfd fds[2] = {
@@ -55,7 +55,7 @@ void connect_to(const char* ip_address, int port, char* username){
 
     // Send initial message to the server
     struct Data data = {
-        .user = username,
+        .user = (char*) username,
         .time = get_current_time(),
         .status = INFORMATION,
         .message = "OK?"
@@ -77,7 +77,7 @@ void connect_to(const char* ip_address, int port, char* username){
 
             struct Data data = {
                 .id = sockfd,
-                .user = username,
+                .user = (char*) username,
                 .message = buffer,
                 .status = MESSAGE,
                 .time = get_current_time()
@@ -109,7 +109,7 @@ void connect_to(const char* ip_address, int port, char* username){
                         printf("%s", data->message);
                         break;
                     default:
-                        fprintf(stderr, "Invalid status: %zu\n", data->status);
+                        fprintf(stderr, "Invalid status: %d\n", data->status);
                         break;
                 }
 
