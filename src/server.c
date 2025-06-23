@@ -9,6 +9,8 @@
 #include <poll.h>
 #include <unistd.h>
 
+#define CLIB_IMPLEMENTATION
+#include "clib.h"
 #include "server.h"
 #include "data.h"
 #include "errors.h"
@@ -17,8 +19,6 @@
 #include "config.h"
 #include "commands.h"
 
-#define CLIB_IMPLEMENTATION
-#include "clib.h"
 
 pthread_mutex_t mutex;
 
@@ -125,22 +125,16 @@ void *handle_client(void *arg) {
 
     INFO("Client '%s' connected", check_data->user);
 
-    char *str = malloc(strlen("Connected as: ") + strlen(check_data->user) + 1);
-    if (str == NULL) {
-        close(clientfd);
-        pthread_exit(NULL);
-    }
-    strcpy(str, "Connected as: ");
-    strcat(str, check_data->user); 
-
-    DEBU("str: %s", str);
-
-    struct Data data = create_data(str, INFORMATION, SERVER_NAME);
+    char* msg = clib_format_text("Connected as: %s", check_data->user);
+    struct Data data = create_data(msg, INFORMATION, SERVER_NAME);
     char* datastr = data_to_string(data);
     DEBU("%s", datastr);
+
     send(clientfd, datastr, BUFFER_SIZE, 0);
 
-    free(str);
+    free(data.message);
+    free(datastr);
+    free(msg);
     
     while (1) {
         char buffer[BUFFER_SIZE] = {0};
@@ -207,7 +201,7 @@ void siginthandler(int params){
     exit(0);
 }
 
-void serve(const char *ip_address, int port, const char* username) {
+void serve(const char *ip_address, int port, char* username) {
     assert(username != NULL);
     assert(ip_address != NULL);
 
@@ -216,8 +210,7 @@ void serve(const char *ip_address, int port, const char* username) {
     pthread_mutex_init(&mutex, NULL);
 
     if(username != NULL && !is_empty(username)){
-        _username = (char*) calloc(strlen(username), sizeof(char));
-        strcpy(_username, username);
+        _username = username;
     }
 
     // Add server's username in the list of usernames
@@ -234,12 +227,14 @@ void serve(const char *ip_address, int port, const char* username) {
     };
 
     if (bind(_sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        free(_username);
         PANIC("Bind Failed");
     }
 
     INFO("Press Ctrl+C to close server");
     INFO("Waiting for clients to connect");
     if (listen(_sockfd, MAX_PENDING_CONNECTIONS) < 0) {
+        free(_username);
         PANIC("Listen failed");
     }
 
@@ -266,7 +261,7 @@ void serve(const char *ip_address, int port, const char* username) {
         if (pthread_create(&thread, NULL, handle_client, client_arg) != 0) {
             ERRO("Error creating thread");
             close(clientfd);
-            free(client_arg); // Free the allocated memory
+            free(client_arg);
         } else {
             pthread_detach(thread);
         }

@@ -55,18 +55,20 @@ void connect_to(const char* ip_address, int port, const char* username){
 
     // Send initial message to the server
     struct Data data = {
-        .user = (char*) username,
         .time = get_current_time(),
+        .user = (char*) username,
         .status = INFORMATION,
         .message = "OK?"
     };
 
-    send(sockfd, data_to_string(data), BUFFER_SIZE, 0);
+    char* data_str = data_to_string(data);
+    send(sockfd, data_str, BUFFER_SIZE, 0);
+    free(data_str);
 
     while(1) {
         char buffer[BUFFER_SIZE] = { 0 };
 
-        poll(fds, 2, TIMEOUT_MS);
+        poll(fds, 2, TIMEOUT_MS); // Crashes here
 
         if (fds[0].revents & POLLIN) {
             read(0, buffer, BUFFER_SIZE-1);
@@ -86,6 +88,7 @@ void connect_to(const char* ip_address, int port, const char* username){
             send(sockfd, data_to_string(data), BUFFER_SIZE-1, 0);
         } else if (fds[1].revents & POLLIN) {
             if (recv(sockfd, buffer, BUFFER_SIZE-1, 0) == 0) {
+                free((char*) username);
                 exit(0);
             }
 

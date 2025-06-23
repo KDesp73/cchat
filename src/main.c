@@ -17,10 +17,6 @@
 #include "client.h"
 
 
-#define UNSET_PORT -65272
-#define ID_LENGTH 6
-
-
 int check_username(const char* username) {
     if (username == NULL) {
         WARN("Username not found");
@@ -81,12 +77,7 @@ const char* determine_username(const char* command, const char* arg, const char*
         return file;
     }
 
-    if(!check_username(file)) {
-        return arg;
-    }
-    
-    UNREACHABLE
-    return NULL;
+    return arg;
 }
 
 int main(int argc, char **argv) {
@@ -139,7 +130,7 @@ int main(int argc, char **argv) {
 
     char *command = argv[argc - 1];
 
-    char* username_path = clib_format_text("%s/.config/cchat/username", getenv("HOME"));
+    char* username_path = USERNAME_PATH;
     char *file_username = read_file_line(username_path);
     free(username_path);
 

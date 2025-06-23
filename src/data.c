@@ -2,16 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include "data.h"
-#include "utils.h"
 
 #define CLIB_IMPLEMENTATION
 #include "clib.h"
+
+#include "utils.h"
 
 struct Data create_data(const char* message, DataStatus status, char* _username){
     struct Data data;
 
     data.id = -1;
-    data.user = ((_username == NULL) ? "server" : _username);
+    data.user = (_username != NULL) ? _username : clib_format_text("server");
     data.status = status;
     data.time = get_current_time();
     data.message = (char*) calloc(strlen(message), sizeof(char));
@@ -37,15 +38,13 @@ void print_message(struct Data* data){
 }
 
 char* data_to_string(struct Data data) {
-    char* formatting = "%d|%s|%s|%d|%ld";
+    const char* formatting = "%d|%s|%s|%d|%ld";
 
     size_t len = snprintf(NULL, 0, formatting, data.id, data.user, data.message, data.status, data.time);
     if (len < 0) {
         fprintf(stderr, "%s() error: snprintf returned an error while determining string length.\n", __func__);
         return NULL;
     }
-
-    
     
     char *datastr = (char*) malloc((len + 1) * sizeof(char)); // +1 for null terminator
     if (!datastr) {
@@ -54,7 +53,7 @@ char* data_to_string(struct Data data) {
     }
 
     int snprintf_result = snprintf(datastr, len + 1, formatting, data.id, data.user, data.message, data.status, data.time);
-    // datastr[len] = '\0';
+    datastr[len] = '\0';
     if (snprintf_result < 0 || (size_t)snprintf_result < len) {
         fprintf(stderr, "%s() error: snprintf returned an error or produced unexpected result.\n", __func__);
         free(datastr);
